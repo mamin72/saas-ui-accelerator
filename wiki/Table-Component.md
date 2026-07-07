@@ -97,6 +97,29 @@ Keep rendering in your framework, and use this component as the state and format
 - Header cells read `getHeaders()` and call `toggleSort(...)` on click
 - Body rows render from `getTableRows()`
 
+## Action Column (MUI + Router)
+
+Use the built-in helper to add `view`, `edit`, `archive`, and `delete` row actions.
+
+- MUI icon names are provided (`Visibility`, `Edit`, `Archive`, `Delete`)
+- Router navigation is supported per action
+- `archive` and `delete` include built-in confirmation before execution
+
+```ts
+import { JsonTableComponent, createDefaultMuiActionColumn } from "sort_component";
+
+const actionColumn = createDefaultMuiActionColumn({
+  router: { navigate: (to) => router.navigate(to) },
+  getViewRoute: (row) => `/users/${row.id}`,
+  getEditRoute: (row) => `/users/${row.id}/edit`,
+  getArchiveRoute: (row) => `/users/${row.id}/archive`,
+  getDeleteRoute: (row) => `/users/${row.id}/delete`,
+  confirm: ({ message }) => window.confirm(message)
+});
+
+const table = new JsonTableComponent({ data: jsonString, columns, actionColumn });
+```
+
 ## Facade Access Pattern
 
 If your app wants one namespace-style entry point:
@@ -106,9 +129,14 @@ import { myComponent } from "sort_component";
 
 const sorted = myComponent.SortData(rows, rules);
 const table = new myComponent.SortableTable({ data: jsonString, columns });
+
+// Short aliases
+const sorted2 = myComponent.Sort(rows, rules);
+const table2 = new myComponent.Table({ data: jsonString, columns });
 ```
 
 Compatibility aliases:
 
-- `myComponent.SortDate` (same as `SortData`)
+- `myComponent.Sort` (same as `SortData`)
+- `myComponent.Table` (same as `SortableTable`)
 - `myComponet` (typo-compatible alias)

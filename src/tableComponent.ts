@@ -7,6 +7,55 @@ export type DateLength = 'short' | 'long';
 export type BooleanDisplayStyle = 'yes-no' | 'icon';
 export type CellAlignment = 'left' | 'right' | 'center';
 export type TableSortDirection = 'asc' | 'desc';
+export type TableActionId = 'view' | 'edit' | 'archive' | 'delete';
+export type MuiActionIconName = 'Visibility' | 'Edit' | 'Archive' | 'Delete';
+
+export interface TableActionRouter {
+  navigate(to: string): void;
+}
+
+export interface TableActionDefinition<T extends Record<string, unknown>> {
+  readonly id: TableActionId;
+  readonly label?: string;
+  readonly muiIcon?: MuiActionIconName;
+  readonly route?: string | ((row: T) => string);
+  readonly onAction?: (row: T) => void | Promise<void>;
+  readonly requiresConfirmation?: boolean;
+  readonly confirmationMessage?: string;
+  readonly visible?: (row: T) => boolean;
+  readonly enabled?: (row: T) => boolean;
+}
+
+export interface TableActionColumn<T extends Record<string, unknown>> {
+  readonly key?: string;
+  readonly header?: string;
+  readonly actions: readonly TableActionDefinition<T>[];
+  readonly router?: TableActionRouter;
+  readonly confirm?: (input: { actionId: TableActionId; message: string; row: T }) => boolean | Promise<boolean>;
+}
+
+export interface TableDefaultActionColumnOptions<T extends Record<string, unknown>> {
+  readonly key?: string;
+  readonly header?: string;
+  readonly router: TableActionRouter;
+  readonly confirm?: (input: { actionId: TableActionId; message: string; row: T }) => boolean | Promise<boolean>;
+  readonly getViewRoute?: (row: T) => string;
+  readonly getEditRoute?: (row: T) => string;
+  readonly getArchiveRoute?: (row: T) => string;
+  readonly getDeleteRoute?: (row: T) => string;
+  readonly onView?: (row: T) => void | Promise<void>;
+  readonly onEdit?: (row: T) => void | Promise<void>;
+  readonly onArchive?: (row: T) => void | Promise<void>;
+  readonly onDelete?: (row: T) => void | Promise<void>;
+}
+
+export interface TableActionState {
+  readonly id: TableActionId;
+  readonly label: string;
+  readonly muiIcon: MuiActionIconName;
+  readonly disabled: boolean;
+  execute(): Promise<boolean>;
+}
 
 export interface TableColumn<T extends Record<string, unknown>> {
   readonly key: Extract<keyof T, string> | string;
@@ -40,6 +89,7 @@ export interface TableCellState {
   readonly rawValue: unknown;
   readonly displayValue: string;
   readonly align: CellAlignment;
+  readonly actions?: readonly TableActionState[];
 }
 
 export interface TableRowState {
@@ -50,25 +100,39 @@ export interface TableRowState {
 export interface JsonTableComponentOptions<T extends Record<string, unknown>> {
   readonly data: string | readonly T[];
   readonly columns: readonly TableColumn<T>[];
+  readonly actionColumn?: TableActionColumn<T>;
 }
 
 export class JsonTableComponent<T extends Record<string, unknown>> {
   private readonly rows: readonly T[];
   private readonly columns: readonly TableColumn<T>[];
+  private readonly actionColumn: TableActionColumn<T> | undefined;
   private sortState: SortState | undefined;
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
     this.columns = this.normalizeColumns(options.columns);
+    this.actionColumn = options.actionColumn;
   }
 
   public getHeaders(): readonly TableHeaderState[] {
-    return this.columns.map((column) => ({
+    const headers = this.columns.map((column) => ({
       key: column.key,
       header: column.header,
       sortable: column.sortable !== false,
       sortDirection: this.sortState?.columnKey === column.key ? this.sortState.direction : undefined,
     }));
+
+    if (this.actionColumn != null) {
+      headers.push({
+        key: this.getActionColumnKey(),
+        header: this.actionColumn.header ?? 'Actions',
+        sortable: false,
+        sortDirection: undefined,
+      });
+    }
+
+    return headers;
   }
 
   public getSortState(): SortState | undefined {
@@ -120,8 +184,122 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   public getTableRows(): readonly TableRowState[] {
     return this.getSortedRows().map((row) => ({
       source: row,
-      cells: this.columns.map((column) => this.toCell(row, column)),
+      cells: this.toCells(row),
     }));
+  }
+
+  private toCells(row: T): TableCellState[] {
+    const cells = this.columns.map((column) => this.toCell(row, column));
+    if (this.actionColumn != null) {
+      cells.push(this.toActionCell(row));
+    }
+
+    return cells;
+  }
+
+  private toActionCell(row: T): TableCellState {
+    const actionColumn = this.actionColumn;
+    if (actionColumn == null) {
+      return {
+        key: this.getActionColumnKey(),
+        rawValue: undefined,
+        displayValue: '',
+        align: 'left',
+      };
+    }
+
+    const visibleActions = actionColumn.actions.filter((action) => action.visible?.(row) ?? true);
+    const actionStates = visibleActions.map((action) => this.toActionState(action, row, actionColumn));
+
+    return {
+      key: this.getActionColumnKey(),
+      rawValue: undefined,
+      displayValue: '',
+      align: 'center',
+      actions: actionStates,
+    };
+  }
+
+  private toActionState(
+    action: TableActionDefinition<T>,
+    row: T,
+    actionColumn: TableActionColumn<T>
+  ): TableActionState {
+    const route = this.resolveRoute(action, row);
+    const hasHandler = route != null || action.onAction != null;
+    const explicitlyEnabled = action.enabled?.(row) ?? true;
+    const disabled = !hasHandler || !explicitlyEnabled;
+
+    return {
+      id: action.id,
+      label: action.label ?? this.defaultActionLabel(action.id),
+      muiIcon: action.muiIcon ?? defaultMuiActionIconMap[action.id],
+      disabled,
+      execute: async (): Promise<boolean> => {
+        if (disabled) {
+          return false;
+        }
+
+        const needsConfirmation = action.requiresConfirmation ?? (action.id === 'archive' || action.id === 'delete');
+        if (needsConfirmation) {
+          const approved = await this.requestConfirmation(action, row, actionColumn);
+          if (!approved) {
+            return false;
+          }
+        }
+
+        if (route != null) {
+          actionColumn.router?.navigate(route);
+        }
+
+        if (action.onAction != null) {
+          await action.onAction(row);
+        }
+
+        return true;
+      },
+    };
+  }
+
+  private resolveRoute(action: TableActionDefinition<T>, row: T): string | undefined {
+    if (action.route == null) {
+      return undefined;
+    }
+
+    if (typeof action.route === 'string') {
+      return action.route;
+    }
+
+    return action.route(row);
+  }
+
+  private async requestConfirmation(
+    action: TableActionDefinition<T>,
+    row: T,
+    actionColumn: TableActionColumn<T>
+  ): Promise<boolean> {
+    const confirmFn = actionColumn.confirm ?? defaultConfirm;
+    const message = action.confirmationMessage ?? `Are you sure you want to ${this.defaultActionLabel(action.id).toLowerCase()} this record?`;
+    return Promise.resolve(confirmFn({ actionId: action.id, message, row }));
+  }
+
+  private defaultActionLabel(actionId: TableActionId): string {
+    switch (actionId) {
+      case 'view':
+        return 'View';
+      case 'edit':
+        return 'Edit';
+      case 'archive':
+        return 'Archive';
+      case 'delete':
+        return 'Delete';
+      default:
+        return actionId;
+    }
+  }
+
+  private getActionColumnKey(): string {
+    return this.actionColumn?.key ?? '__actions__';
   }
 
   private parseData(data: string | readonly T[]): readonly T[] {
@@ -383,6 +561,63 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
     return null;
   }
+}
+
+const defaultMuiActionIconMap: Record<TableActionId, MuiActionIconName> = {
+  view: 'Visibility',
+  edit: 'Edit',
+  archive: 'Archive',
+  delete: 'Delete',
+};
+
+const defaultConfirm: NonNullable<TableActionColumn<Record<string, unknown>>['confirm']> = ({ message }) => {
+  const globalWithConfirm = globalThis as { confirm?: (prompt: string) => boolean };
+  if (typeof globalWithConfirm.confirm === 'function') {
+    return globalWithConfirm.confirm(message);
+  }
+
+  return true;
+};
+
+export function createDefaultMuiActionColumn<T extends Record<string, unknown>>(
+  options: TableDefaultActionColumnOptions<T>
+): TableActionColumn<T> {
+  return {
+    key: options.key ?? '__actions__',
+    header: options.header ?? 'Actions',
+    router: options.router,
+    confirm: options.confirm,
+    actions: [
+      {
+        id: 'view',
+        muiIcon: 'Visibility',
+        route: options.getViewRoute,
+        onAction: options.onView,
+      },
+      {
+        id: 'edit',
+        muiIcon: 'Edit',
+        route: options.getEditRoute,
+        onAction: options.onEdit,
+      },
+      {
+        id: 'archive',
+        muiIcon: 'Archive',
+        route: options.getArchiveRoute,
+        onAction: options.onArchive,
+        requiresConfirmation: true,
+        confirmationMessage: 'Are you sure you want to archive this record?',
+      },
+      {
+        id: 'delete',
+        muiIcon: 'Delete',
+        route: options.getDeleteRoute,
+        onAction: options.onDelete,
+        requiresConfirmation: true,
+        confirmationMessage: 'Are you sure you want to delete this record?',
+      },
+    ],
+  };
 }
 
 /* c8 ignore end */

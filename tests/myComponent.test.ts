@@ -8,14 +8,23 @@ describe('myComponent facade', () => {
     expect(sorted.map((x) => x.name)).toEqual(['A', 'B']);
   });
 
-  it('exposes SortDate compatibility alias', () => {
+  it('exposes Sort short alias', () => {
     const rows = [{ value: 2 }, { value: 1 }];
-    const sorted = myComponent.SortDate(rows, [{ id: 'v', direction: 'asc', selector: (x) => x.value }]);
+    const sorted = myComponent.Sort(rows, [{ id: 'v', direction: 'asc', selector: (x) => x.value }]);
     expect(sorted.map((x) => x.value)).toEqual([1, 2]);
   });
 
   it('exposes SortableTable constructor', () => {
     const table = new myComponent.SortableTable({
+      data: [{ name: 'A' }],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+    });
+
+    expect(table.getTableRows()[0]?.cells[0]?.displayValue).toBe('A');
+  });
+
+  it('exposes Table short alias', () => {
+    const table = new myComponent.Table({
       data: [{ name: 'A' }],
       columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
     });
@@ -34,6 +43,8 @@ describe('myComponent facade', () => {
 
   it('supports typo compatibility alias myComponet', () => {
     expect(myComponet.SortableTable).toBe(myComponent.SortableTable);
+    expect(myComponet.Table).toBe(myComponent.Table);
     expect(myComponet.SortData).toBe(myComponent.SortData);
+    expect(myComponet.Sort).toBe(myComponent.Sort);
   });
 });

@@ -73,6 +73,28 @@ Column data types and formatting:
 - `date` and `datetime` (US, UK, Chinese locales; short or long format; UTC-to-local option)
 - `boolean` (`Yes/No` or `✓/✗`)
 
+Action column support:
+
+- built-in `view`, `edit`, `archive`, `delete` actions
+- MUI icon names included (`Visibility`, `Edit`, `Archive`, `Delete`)
+- router navigation hooks for each action
+- built-in confirmation before `archive` and `delete`
+
+```ts
+import { JsonTableComponent, createDefaultMuiActionColumn } from "sort_component";
+
+const actionColumn = createDefaultMuiActionColumn({
+	router: { navigate: (to) => router.navigate(to) },
+	getViewRoute: (row) => `/users/${row.id}`,
+	getEditRoute: (row) => `/users/${row.id}/edit`,
+	getArchiveRoute: (row) => `/users/${row.id}/archive`,
+	getDeleteRoute: (row) => `/users/${row.id}/delete`,
+	confirm: ({ message }) => window.confirm(message)
+});
+
+const table = new JsonTableComponent({ data: jsonString, columns, actionColumn });
+```
+
 ## Facade API (Requested Naming Style)
 
 If you prefer a single entry object, use `myComponent`:
@@ -82,11 +104,16 @@ import { myComponent } from "sort_component";
 
 const sorted = myComponent.SortData(rows, rules);
 const table = new myComponent.SortableTable({ data: jsonString, columns });
+
+// Short aliases
+const sorted2 = myComponent.Sort(rows, rules);
+const table2 = new myComponent.Table({ data: jsonString, columns });
 ```
 
 Compatibility aliases are included:
 
-- `myComponent.SortDate` (alias of `SortData`)
+- `myComponent.Sort` (alias of `SortData`)
+- `myComponent.Table` (alias of `SortableTable`)
 - `myComponet` (typo-compatible alias of `myComponent`)
 
 ## Licensing

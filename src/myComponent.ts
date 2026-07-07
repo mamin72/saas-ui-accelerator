@@ -4,9 +4,9 @@ import { JsonTableComponent } from './tableComponent';
 
 export const myComponent = {
   SortData: sortByRules,
-  // Compatibility alias for requested naming style.
-  SortDate: sortByRules,
+  Sort: sortByRules,
   SortableTable: JsonTableComponent,
+  Table: JsonTableComponent,
   ParseAndSort: parseAndSort,
   ParseAndSortFromStream: parseAndSortFromStream,
 } as const;

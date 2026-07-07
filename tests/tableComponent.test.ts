@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { JsonTableComponent } from '../src/index';
+import { JsonTableComponent, createDefaultMuiActionColumn } from '../src/index';
 
 describe('JsonTableComponent', () => {
   const rows = [
@@ -247,5 +247,89 @@ describe('JsonTableComponent', () => {
     const component = new JsonTableComponent({ data: rows, columns });
     component.toggleSort('missing');
     expect(component.getSortedRows().map((x) => x.name)).toEqual(['Alice', 'bob']);
+  });
+
+  it('adds action column and exposes default mui action icons', () => {
+    const routerCalls: string[] = [];
+    const actionColumn = createDefaultMuiActionColumn({
+      router: { navigate: (to) => routerCalls.push(to) },
+      getViewRoute: (row) => `/users/${String(row.name).toLowerCase()}`,
+    });
+
+    const component = new JsonTableComponent({ data: rows, columns, actionColumn });
+    const headers = component.getHeaders();
+    const actionHeader = headers.find((item) => item.key === '__actions__');
+    expect(actionHeader?.sortable).toBe(false);
+
+    const actionCell = component.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__');
+    expect(actionCell?.actions?.map((action) => action.muiIcon)).toEqual(['Visibility', 'Edit', 'Archive', 'Delete']);
+    expect(routerCalls).toEqual([]);
+  });
+
+  it('runs view and edit actions through router', async () => {
+    const routerCalls: string[] = [];
+    const actionColumn = createDefaultMuiActionColumn({
+      router: { navigate: (to) => routerCalls.push(to) },
+      getViewRoute: (row) => `/view/${String(row.name).toLowerCase()}`,
+      getEditRoute: (row) => `/edit/${String(row.name).toLowerCase()}`,
+    });
+
+    const component = new JsonTableComponent({ data: rows, columns, actionColumn });
+    const actions = component.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const view = actions.find((action) => action.id === 'view');
+    const edit = actions.find((action) => action.id === 'edit');
+
+    await view?.execute();
+    await edit?.execute();
+
+    expect(routerCalls).toEqual(['/view/alice', '/edit/alice']);
+  });
+
+  it('requires confirmation for archive and delete actions', async () => {
+    const routerCalls: string[] = [];
+    const confirmations: string[] = [];
+    const actionColumn = createDefaultMuiActionColumn({
+      router: { navigate: (to) => routerCalls.push(to) },
+      confirm: ({ message, actionId }) => {
+        confirmations.push(`${actionId}:${message}`);
+        return false;
+      },
+      getArchiveRoute: () => '/archive',
+      getDeleteRoute: () => '/delete',
+    });
+
+    const component = new JsonTableComponent({ data: rows, columns, actionColumn });
+    const actions = component.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const archive = actions.find((action) => action.id === 'archive');
+    const del = actions.find((action) => action.id === 'delete');
+
+    const archiveResult = await archive?.execute();
+    const deleteResult = await del?.execute();
+
+    expect(archiveResult).toBe(false);
+    expect(deleteResult).toBe(false);
+    expect(routerCalls).toEqual([]);
+    expect(confirmations.length).toBe(2);
+  });
+
+  it('supports custom action callbacks when no routes are provided', async () => {
+    const events: string[] = [];
+    const actionColumn = createDefaultMuiActionColumn({
+      router: { navigate: () => {} },
+      onView: (row) => events.push(`view:${String(row.name)}`),
+      onEdit: (row) => events.push(`edit:${String(row.name)}`),
+      onArchive: (row) => events.push(`archive:${String(row.name)}`),
+      onDelete: (row) => events.push(`delete:${String(row.name)}`),
+      confirm: () => true,
+    });
+
+    const component = new JsonTableComponent({ data: rows, columns, actionColumn });
+    const actions = component.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+
+    for (const action of actions) {
+      await action.execute();
+    }
+
+    expect(events).toEqual(['view:Alice', 'edit:Alice', 'archive:Alice', 'delete:Alice']);
   });
 });
