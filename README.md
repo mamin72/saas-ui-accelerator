@@ -2,6 +2,18 @@
 
 Reusable TypeScript sorting component library.
 
+## Licensing
+
+This project uses a dual-license model:
+
+- Non-commercial usage is allowed under the default repository license.
+- Commercial usage requires a separate paid commercial license.
+
+See [LICENSE](LICENSE) and [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) for details.
+
+For commercial licensing requests, contact the repository owner:
+- https://github.com/mamin72
+
 ## Setup
 
 ```bash

@@ -18,6 +18,7 @@ The format is inspired by Keep a Changelog and follows Semantic Versioning.
 ### Changed
 
 - Added publishing guidance in OPEN_SOURCE_PUBLISHING_GUIDE.md
+- Replaced MIT with a dual-license model (non-commercial default plus paid commercial license)
 
 ## [1.0.0] - 2026-07-07
 
