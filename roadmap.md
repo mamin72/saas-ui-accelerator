@@ -105,7 +105,7 @@ These are the full target modules for a complete SaaS-ready library.
 
 Work strictly from top to bottom. Do not start the next item until the current item is complete.
 
-1. [ ] Filtering engine for table rows.
+1. [x] Filtering engine for table rows.
 2. [ ] Multi-column sorting in table API.
 3. [ ] Pagination helpers.
 4. [ ] Column visibility state helpers.
@@ -122,10 +122,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 1: Filtering engine for table rows.
-- Scope for first implementation:
-- `contains`, `equals`, `startsWith` for text.
-- `eq`, `gt`, `gte`, `lt`, `lte`, `between` for number/date.
-- `isTrue`, `isFalse` for boolean.
-- AND-combined filters with optional OR groups in a follow-up.
-- New API should integrate into `JsonTableComponent` without breaking existing sorting behavior.
+- Item 2: Multi-column sorting in table API.
+- Scope for next implementation:
+- Stable precedence ordering across multiple sort rules.
+- Backward compatible with existing `toggleSort` behavior.
+- Optional convenience API for replacing or appending sort rules.
