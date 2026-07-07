@@ -103,6 +103,8 @@ export interface TablePaginationState {
   readonly pageSize: number;
 }
 
+export type TableColumnVisibilityState = Readonly<Record<string, boolean>>;
+
 export interface TablePageInfo {
   readonly pageIndex: number;
   readonly pageSize: number;
@@ -147,6 +149,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private sortState: readonly SortState[];
   private filterState: readonly TableFilter<T>[];
   private paginationState: TablePaginationState | undefined;
+  private columnVisibilityState: TableColumnVisibilityState;
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
@@ -155,10 +158,11 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.sortState = [];
     this.filterState = [];
     this.paginationState = undefined;
+    this.columnVisibilityState = this.getDefaultColumnVisibility();
   }
 
   public getHeaders(): readonly TableHeaderState[] {
-    const headers = this.columns.map((column) => ({
+    const headers = this.getVisibleColumns().map((column) => ({
       key: column.key,
       header: column.header,
       sortable: column.sortable !== false,
@@ -211,6 +215,48 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
   public clearFilters(): void {
     this.filterState = [];
+  }
+
+  public getColumnVisibility(): TableColumnVisibilityState {
+    return this.columnVisibilityState;
+  }
+
+  public setColumnVisibilityMap(visibility: TableColumnVisibilityState): TableColumnVisibilityState {
+    const normalized = this.getDefaultColumnVisibility();
+
+    for (const key of Object.keys(visibility)) {
+      this.assertKnownColumn(key);
+      normalized[key] = visibility[key] !== false;
+    }
+
+    this.columnVisibilityState = normalized;
+    return this.columnVisibilityState;
+  }
+
+  public setColumnVisibility(columnKey: string, isVisible: boolean): TableColumnVisibilityState {
+    this.assertKnownColumn(columnKey);
+    this.columnVisibilityState = {
+      ...this.columnVisibilityState,
+      [columnKey]: isVisible,
+    };
+
+    return this.columnVisibilityState;
+  }
+
+  public toggleColumnVisibility(columnKey: string): TableColumnVisibilityState {
+    this.assertKnownColumn(columnKey);
+    const current = this.columnVisibilityState[columnKey] !== false;
+    this.columnVisibilityState = {
+      ...this.columnVisibilityState,
+      [columnKey]: !current,
+    };
+
+    return this.columnVisibilityState;
+  }
+
+  public clearColumnVisibility(): TableColumnVisibilityState {
+    this.columnVisibilityState = this.getDefaultColumnVisibility();
+    return this.columnVisibilityState;
   }
 
   public getPagination(): TablePaginationState | undefined {
@@ -375,7 +421,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   }
 
   private toCells(row: T): TableCellState[] {
-    const cells = this.columns.map((column) => this.toCell(row, column));
+    const cells = this.getVisibleColumns().map((column) => this.toCell(row, column));
     if (this.actionColumn != null) {
       cells.push(this.toActionCell(row));
     }
@@ -535,6 +581,24 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       }
     } catch {
       throw new Error(`Invalid currency code '${code}'. Use a valid ISO 4217 code.`);
+    }
+  }
+
+  private getDefaultColumnVisibility(): Record<string, boolean> {
+    return this.columns.reduce<Record<string, boolean>>((accumulator, column) => {
+      accumulator[column.key] = true;
+      return accumulator;
+    }, {});
+  }
+
+  private getVisibleColumns(): readonly TableColumn<T>[] {
+    return this.columns.filter((column) => this.columnVisibilityState[column.key] !== false);
+  }
+
+  private assertKnownColumn(columnKey: string): void {
+    const exists = this.columns.some((column) => column.key === columnKey);
+    if (!exists) {
+      throw new Error(`Invalid column '${columnKey}'.`);
     }
   }
 

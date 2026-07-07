@@ -108,7 +108,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 1. [x] Filtering engine for table rows.
 2. [x] Multi-column sorting in table API.
 3. [x] Pagination helpers.
-4. [ ] Column visibility state helpers.
+4. [x] Column visibility state helpers.
 5. [ ] Row selection and bulk action state helpers.
 
 ## Definition Of Done (for each item)
@@ -122,8 +122,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 4: Column visibility state helpers.
+- Item 5: Row selection and bulk action state helpers.
 - Scope for next implementation:
-- Per-column visible/hidden state with sensible defaults.
-- APIs to toggle one column or set full visibility map.
-- Ensure hidden columns are excluded from table cell output while preserving sort/filter stability.
+- Row selection state by stable row key with select-all support.
+- APIs for selecting one/many/none and reading selected rows.
+- Bulk action helper hooks that work with current filtered/sorted/paginated data.

@@ -12,6 +12,7 @@ Reusable TypeScript sorting component library.
 - Multi-column sorting support with stable precedence (`setSortRules`, `appendSort`)
 - Table filtering engine with AND-combined filters (`contains`, `equals`, `startsWith`, `eq`, `gt`, `gte`, `lt`, `lte`, `between`, `isTrue`, `isFalse`)
 - Client-side pagination helpers with page controls and metadata (`setPagination`, `setPageSize`, `setPageIndex`, `getPageInfo`)
+- Column visibility state helpers (`setColumnVisibility`, `toggleColumnVisibility`, `setColumnVisibilityMap`, `clearColumnVisibility`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -112,6 +113,19 @@ table.setPageSize(50, { resetToFirstPage: true });
 const pageRows = table.getPaginatedRows();
 const pageInfo = table.getPageInfo();
 
+table.setColumnVisibility("amount", false);
+table.toggleColumnVisibility("name");
+table.setColumnVisibilityMap({
+	name: true,
+	age: true,
+	score: true,
+	amount: false,
+	createdUtc: true,
+	active: true
+});
+
+const visibility = table.getColumnVisibility();
+
 table.setFilters([
 	{ columnKey: "name", operator: "contains", value: "ali" },
 	{ columnKey: "age", operator: "gte", value: 30 }
@@ -151,6 +165,14 @@ Pagination APIs:
 - `getPaginatedRows()`
 - `getPageInfo()`
 - `clearPagination()`
+
+Column visibility APIs:
+
+- `getColumnVisibility()`
+- `setColumnVisibility(columnKey, isVisible)`
+- `toggleColumnVisibility(columnKey)`
+- `setColumnVisibilityMap({ [columnKey]: boolean })`
+- `clearColumnVisibility()`
 
 Action column support:
 

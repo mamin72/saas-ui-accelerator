@@ -541,6 +541,66 @@ describe('JsonTableComponent', () => {
     expect(component.getTableRows().length).toBe(3);
   });
 
+  it('defaults all columns to visible and supports full visibility map updates', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    expect(component.getColumnVisibility().name).toBe(true);
+    expect(component.getHeaders().some((header) => header.key === 'name')).toBe(true);
+
+    component.setColumnVisibilityMap({ name: false, age: true, score: false, amount: true, createdUtc: true, active: true, sortableFlag: true });
+    expect(component.getHeaders().some((header) => header.key === 'name')).toBe(false);
+    expect(component.getHeaders().some((header) => header.key === 'score')).toBe(false);
+  });
+
+  it('supports setting and toggling visibility for single columns', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setColumnVisibility('name', false);
+    expect(component.getHeaders().some((header) => header.key === 'name')).toBe(false);
+
+    component.toggleColumnVisibility('name');
+    expect(component.getHeaders().some((header) => header.key === 'name')).toBe(true);
+  });
+
+  it('excludes hidden columns from table cells while preserving action column', () => {
+    const actionColumn = createDefaultMuiActionColumn({
+      router: { navigate: () => {} },
+      getViewRoute: () => '/view',
+    });
+
+    const component = new JsonTableComponent({ data: rows, columns, actionColumn });
+    component.setColumnVisibility('name', false);
+
+    const row = component.getTableRows()[0];
+    expect(row?.cells.some((cell) => cell.key === 'name')).toBe(false);
+    expect(row?.cells.some((cell) => cell.key === '__actions__')).toBe(true);
+  });
+
+  it('keeps sorting and filtering stable on hidden columns', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setColumnVisibility('name', false);
+    component.setFilters([{ columnKey: 'name', operator: 'contains', value: 'ali' }]);
+    component.setSortRules([{ columnKey: 'name', direction: 'asc' }]);
+
+    expect(component.getSortedRows().map((row) => row.name)).toEqual(['Alice']);
+    const outputRow = component.getTableRows()[0];
+    expect(outputRow?.cells.some((cell) => cell.key === 'name')).toBe(false);
+  });
+
+  it('clears visibility state and validates unknown column keys', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setColumnVisibility('name', false);
+    expect(component.getHeaders().some((header) => header.key === 'name')).toBe(false);
+
+    component.clearColumnVisibility();
+    expect(component.getHeaders().some((header) => header.key === 'name')).toBe(true);
+
+    expect(() => component.setColumnVisibility('missing', false)).toThrow("Invalid column 'missing'.");
+    expect(() => component.setColumnVisibilityMap({ missing: false })).toThrow("Invalid column 'missing'.");
+    expect(() => component.toggleColumnVisibility('missing')).toThrow("Invalid column 'missing'.");
+  });
+
   it('adds action column and exposes default mui action icons', () => {
     const routerCalls: string[] = [];
     const actionColumn = createDefaultMuiActionColumn({

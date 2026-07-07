@@ -120,6 +120,32 @@ const pageInfo = table.getPageInfo();
 - `startRow`
 - `endRow`
 
+## Column Visibility API
+
+Column visibility controls which data columns appear in headers and rendered cells.
+
+```ts
+table.setColumnVisibility("amount", false);
+table.toggleColumnVisibility("name");
+
+table.setColumnVisibilityMap({
+  name: true,
+  count: true,
+  score: true,
+  amount: false,
+  createdUtc: true,
+  active: true
+});
+
+const visibility = table.getColumnVisibility();
+```
+
+Notes:
+
+- Hidden columns are removed from table headers and cell output
+- Sorting and filtering on hidden columns remain stable and supported
+- `clearColumnVisibility()` restores defaults (all visible)
+
 ## Supported Column Data Types
 
 - `text`
