@@ -96,3 +96,19 @@ Keep rendering in your framework, and use this component as the state and format
 
 - Header cells read `getHeaders()` and call `toggleSort(...)` on click
 - Body rows render from `getTableRows()`
+
+## Facade Access Pattern
+
+If your app wants one namespace-style entry point:
+
+```ts
+import { myComponent } from "sort_component";
+
+const sorted = myComponent.SortData(rows, rules);
+const table = new myComponent.SortableTable({ data: jsonString, columns });
+```
+
+Compatibility aliases:
+
+- `myComponent.SortDate` (same as `SortData`)
+- `myComponet` (typo-compatible alias)

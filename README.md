@@ -73,6 +73,22 @@ Column data types and formatting:
 - `date` and `datetime` (US, UK, Chinese locales; short or long format; UTC-to-local option)
 - `boolean` (`Yes/No` or `✓/✗`)
 
+## Facade API (Requested Naming Style)
+
+If you prefer a single entry object, use `myComponent`:
+
+```ts
+import { myComponent } from "sort_component";
+
+const sorted = myComponent.SortData(rows, rules);
+const table = new myComponent.SortableTable({ data: jsonString, columns });
+```
+
+Compatibility aliases are included:
+
+- `myComponent.SortDate` (alias of `SortData`)
+- `myComponet` (typo-compatible alias of `myComponent`)
+
 ## Licensing
 
 This project uses a dual-license model:
