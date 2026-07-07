@@ -104,6 +104,29 @@ export interface TablePaginationState {
 }
 
 export type TableColumnVisibilityState = Readonly<Record<string, boolean>>;
+export type TableRowKey = string | number;
+
+export interface TableSelectionInfo {
+  readonly selectedCount: number;
+  readonly selectedFilteredCount: number;
+  readonly selectedPaginatedCount: number;
+  readonly allFilteredSelected: boolean;
+  readonly allPaginatedSelected: boolean;
+}
+
+export interface TableBulkSelectionContext<T extends Record<string, unknown>> {
+  readonly selectedRowKeys: readonly TableRowKey[];
+  readonly selectedRows: readonly T[];
+  readonly selectedFilteredRows: readonly T[];
+  readonly selectedPaginatedRows: readonly T[];
+  readonly filteredRows: readonly T[];
+  readonly sortedRows: readonly T[];
+  readonly paginatedRows: readonly T[];
+}
+
+export type TableBulkActionHandler<T extends Record<string, unknown>, TResult = void> = (
+  context: TableBulkSelectionContext<T>
+) => TResult | Promise<TResult>;
 
 export interface TablePageInfo {
   readonly pageIndex: number;
@@ -140,6 +163,7 @@ export interface JsonTableComponentOptions<T extends Record<string, unknown>> {
   readonly data: string | readonly T[];
   readonly columns: readonly TableColumn<T>[];
   readonly actionColumn?: TableActionColumn<T>;
+  readonly rowKey?: Extract<keyof T, string> | ((row: T, index: number) => TableRowKey);
 }
 
 export class JsonTableComponent<T extends Record<string, unknown>> {
@@ -150,6 +174,11 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private filterState: readonly TableFilter<T>[];
   private paginationState: TablePaginationState | undefined;
   private columnVisibilityState: TableColumnVisibilityState;
+  private readonly rowKeyTokenToKey: Map<string, TableRowKey>;
+  private readonly rowKeyTokenToRow: Map<string, T>;
+  private readonly rowReferenceToToken: Map<T, string>;
+  private readonly rowKeyResolver: (row: T, index: number) => TableRowKey;
+  private selectedRowKeyTokens: Set<string>;
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
@@ -159,6 +188,12 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.filterState = [];
     this.paginationState = undefined;
     this.columnVisibilityState = this.getDefaultColumnVisibility();
+    this.rowKeyResolver = this.normalizeRowKeyResolver(options.rowKey);
+    this.rowKeyTokenToKey = new Map();
+    this.rowKeyTokenToRow = new Map();
+    this.rowReferenceToToken = new Map();
+    this.buildRowKeyIndex();
+    this.selectedRowKeyTokens = new Set();
   }
 
   public getHeaders(): readonly TableHeaderState[] {
@@ -215,6 +250,152 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
   public clearFilters(): void {
     this.filterState = [];
+  }
+
+  public getSelectedRowKeys(): readonly TableRowKey[] {
+    return [...this.selectedRowKeyTokens]
+      .map((token) => this.rowKeyTokenToKey.get(token))
+      .filter((key): key is TableRowKey => key != null);
+  }
+
+  public getSelectedRows(): T[] {
+    return this.rows.filter((row, index) => this.selectedRowKeyTokens.has(this.getRowToken(row, index)));
+  }
+
+  public getSelectedFilteredRows(): T[] {
+    return this.getFilteredRows().filter((row) => this.selectedRowKeyTokens.has(this.getRowTokenByRow(row)));
+  }
+
+  public getSelectedPaginatedRows(): T[] {
+    return this.getPaginatedRows().filter((row) => this.selectedRowKeyTokens.has(this.getRowTokenByRow(row)));
+  }
+
+  public getSelectionInfo(): TableSelectionInfo {
+    const filteredRows = this.getFilteredRows();
+    const paginatedRows = this.getPaginatedRows();
+    const selectedFilteredCount = filteredRows.filter((row) => this.selectedRowKeyTokens.has(this.getRowTokenByRow(row))).length;
+    const selectedPaginatedCount = paginatedRows.filter((row) => this.selectedRowKeyTokens.has(this.getRowTokenByRow(row))).length;
+
+    return {
+      selectedCount: this.selectedRowKeyTokens.size,
+      selectedFilteredCount,
+      selectedPaginatedCount,
+      allFilteredSelected: filteredRows.length > 0 && selectedFilteredCount === filteredRows.length,
+      allPaginatedSelected: paginatedRows.length > 0 && selectedPaginatedCount === paginatedRows.length,
+    };
+  }
+
+  public setSelectedRowKeys(keys: readonly TableRowKey[]): readonly TableRowKey[] {
+    const tokens = new Set<string>();
+    for (const key of keys) {
+      const token = this.encodeRowKey(key);
+      this.assertKnownRowToken(token, key);
+      tokens.add(token);
+    }
+
+    this.selectedRowKeyTokens = tokens;
+    return this.getSelectedRowKeys();
+  }
+
+  public clearSelection(): void {
+    this.selectedRowKeyTokens = new Set();
+  }
+
+  public selectRowByKey(key: TableRowKey): readonly TableRowKey[] {
+    const token = this.encodeRowKey(key);
+    this.assertKnownRowToken(token, key);
+    this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, token]);
+    return this.getSelectedRowKeys();
+  }
+
+  public deselectRowByKey(key: TableRowKey): readonly TableRowKey[] {
+    const token = this.encodeRowKey(key);
+    const next = new Set(this.selectedRowKeyTokens);
+    next.delete(token);
+    this.selectedRowKeyTokens = next;
+    return this.getSelectedRowKeys();
+  }
+
+  public toggleRowSelectionByKey(key: TableRowKey): readonly TableRowKey[] {
+    const token = this.encodeRowKey(key);
+    this.assertKnownRowToken(token, key);
+    const next = new Set(this.selectedRowKeyTokens);
+    if (next.has(token)) {
+      next.delete(token);
+    } else {
+      next.add(token);
+    }
+
+    this.selectedRowKeyTokens = next;
+    return this.getSelectedRowKeys();
+  }
+
+  public isRowSelectedByKey(key: TableRowKey): boolean {
+    return this.selectedRowKeyTokens.has(this.encodeRowKey(key));
+  }
+
+  public selectRow(row: T): readonly TableRowKey[] {
+    const token = this.getRowTokenByRow(row);
+    this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, token]);
+    return this.getSelectedRowKeys();
+  }
+
+  public deselectRow(row: T): readonly TableRowKey[] {
+    const token = this.getRowTokenByRow(row);
+    const next = new Set(this.selectedRowKeyTokens);
+    next.delete(token);
+    this.selectedRowKeyTokens = next;
+    return this.getSelectedRowKeys();
+  }
+
+  public toggleRowSelection(row: T): readonly TableRowKey[] {
+    const token = this.getRowTokenByRow(row);
+    const next = new Set(this.selectedRowKeyTokens);
+    if (next.has(token)) {
+      next.delete(token);
+    } else {
+      next.add(token);
+    }
+
+    this.selectedRowKeyTokens = next;
+    return this.getSelectedRowKeys();
+  }
+
+  public isRowSelected(row: T): boolean {
+    return this.selectedRowKeyTokens.has(this.getRowTokenByRow(row));
+  }
+
+  public selectAllRows(): readonly TableRowKey[] {
+    this.selectedRowKeyTokens = new Set(this.rows.map((row, index) => this.getRowToken(row, index)));
+    return this.getSelectedRowKeys();
+  }
+
+  public selectAllFilteredRows(): readonly TableRowKey[] {
+    const tokens = this.getFilteredRows().map((row) => this.getRowTokenByRow(row));
+    this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, ...tokens]);
+    return this.getSelectedRowKeys();
+  }
+
+  public selectAllPaginatedRows(): readonly TableRowKey[] {
+    const tokens = this.getPaginatedRows().map((row) => this.getRowTokenByRow(row));
+    this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, ...tokens]);
+    return this.getSelectedRowKeys();
+  }
+
+  public async executeBulkAction<TResult>(
+    handler: TableBulkActionHandler<T, TResult>
+  ): Promise<TResult> {
+    const context: TableBulkSelectionContext<T> = {
+      selectedRowKeys: this.getSelectedRowKeys(),
+      selectedRows: this.getSelectedRows(),
+      selectedFilteredRows: this.getSelectedFilteredRows(),
+      selectedPaginatedRows: this.getSelectedPaginatedRows(),
+      filteredRows: this.getFilteredRows(),
+      sortedRows: this.getSortedRows(),
+      paginatedRows: this.getPaginatedRows(),
+    };
+
+    return Promise.resolve(handler(context));
   }
 
   public getColumnVisibility(): TableColumnVisibilityState {
@@ -541,6 +722,72 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
     const parsed = parseRecords(data, { format: 'json' });
     return parsed.map((row) => row as T);
+  }
+
+  private normalizeRowKeyResolver(
+    rowKey: JsonTableComponentOptions<T>['rowKey']
+  ): (row: T, index: number) => TableRowKey {
+    if (rowKey == null) {
+      return (_row, index) => index;
+    }
+
+    if (typeof rowKey === 'function') {
+      return rowKey;
+    }
+
+    return (row: T) => {
+      const value = row[rowKey];
+      if (typeof value === 'string' || typeof value === 'number') {
+        return value;
+      }
+
+      throw new Error(`Invalid row key value for '${rowKey}'. Row key must resolve to string or number.`);
+    };
+  }
+
+  private buildRowKeyIndex(): void {
+    this.rows.forEach((row, index) => {
+      const token = this.getRowToken(row, index);
+      if (this.rowKeyTokenToRow.has(token)) {
+        throw new Error(`Duplicate row key '${token}' detected. Row keys must be unique.`);
+      }
+
+      this.rowKeyTokenToRow.set(token, row);
+      this.rowKeyTokenToKey.set(token, this.decodeRowKeyToken(token));
+      this.rowReferenceToToken.set(row, token);
+    });
+  }
+
+  private getRowTokenByRow(row: T): string {
+    const token = this.rowReferenceToToken.get(row);
+    if (token == null) {
+      throw new Error('Row is not part of the current table data set.');
+    }
+
+    return token;
+  }
+
+  private getRowToken(row: T, fallbackIndex: number): string {
+    const key = this.rowKeyResolver(row, fallbackIndex);
+    return this.encodeRowKey(key);
+  }
+
+  private encodeRowKey(key: TableRowKey): string {
+    return typeof key === 'number' ? `n:${key}` : `s:${key}`;
+  }
+
+  private decodeRowKeyToken(token: string): TableRowKey {
+    if (token.startsWith('n:')) {
+      return Number(token.slice(2));
+    }
+
+    return token.slice(2);
+  }
+
+  private assertKnownRowToken(token: string, originalKey: TableRowKey): void {
+    if (!this.rowKeyTokenToRow.has(token)) {
+      throw new Error(`Unknown row key '${originalKey}'.`);
+    }
   }
 
   private normalizeColumns(columns: readonly TableColumn<T>[]): readonly TableColumn<T>[] {

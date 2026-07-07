@@ -13,6 +13,7 @@ Reusable TypeScript sorting component library.
 - Table filtering engine with AND-combined filters (`contains`, `equals`, `startsWith`, `eq`, `gt`, `gte`, `lt`, `lte`, `between`, `isTrue`, `isFalse`)
 - Client-side pagination helpers with page controls and metadata (`setPagination`, `setPageSize`, `setPageIndex`, `getPageInfo`)
 - Column visibility state helpers (`setColumnVisibility`, `toggleColumnVisibility`, `setColumnVisibilityMap`, `clearColumnVisibility`)
+- Row selection and bulk action helpers (`selectRowByKey`, `selectAllFilteredRows`, `getSelectionInfo`, `executeBulkAction`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -126,6 +127,19 @@ table.setColumnVisibilityMap({
 
 const visibility = table.getColumnVisibility();
 
+table.setSelectedRowKeys([0]);
+table.selectAllFilteredRows();
+const selectedKeys = table.getSelectedRowKeys();
+const selectedRows = table.getSelectedRows();
+const selectionInfo = table.getSelectionInfo();
+
+const bulkResult = await table.executeBulkAction((context) => {
+	return {
+		count: context.selectedRows.length,
+		selectedKeys: context.selectedRowKeys
+	};
+});
+
 table.setFilters([
 	{ columnKey: "name", operator: "contains", value: "ali" },
 	{ columnKey: "age", operator: "gte", value: 30 }
@@ -173,6 +187,18 @@ Column visibility APIs:
 - `toggleColumnVisibility(columnKey)`
 - `setColumnVisibilityMap({ [columnKey]: boolean })`
 - `clearColumnVisibility()`
+
+Row selection APIs:
+
+- `setSelectedRowKeys(keys)`
+- `getSelectedRowKeys()`
+- `selectRowByKey(key)` / `deselectRowByKey(key)` / `toggleRowSelectionByKey(key)`
+- `selectRow(row)` / `deselectRow(row)` / `toggleRowSelection(row)`
+- `selectAllRows()` / `selectAllFilteredRows()` / `selectAllPaginatedRows()`
+- `clearSelection()`
+- `getSelectedRows()` / `getSelectedFilteredRows()` / `getSelectedPaginatedRows()`
+- `getSelectionInfo()`
+- `executeBulkAction(handler)`
 
 Action column support:
 

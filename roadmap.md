@@ -109,7 +109,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 2. [x] Multi-column sorting in table API.
 3. [x] Pagination helpers.
 4. [x] Column visibility state helpers.
-5. [ ] Row selection and bulk action state helpers.
+5. [x] Row selection and bulk action state helpers.
 
 ## Definition Of Done (for each item)
 
@@ -122,8 +122,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 5: Row selection and bulk action state helpers.
+- Item 6: CSV export utility.
 - Scope for next implementation:
-- Row selection state by stable row key with select-all support.
-- APIs for selecting one/many/none and reading selected rows.
-- Bulk action helper hooks that work with current filtered/sorted/paginated data.
+- Export current table data projections (visible columns by default) to CSV text.
+- Support export scopes: all, filtered, sorted, paginated, selected.
+- Provide configurable delimiter and header behavior.

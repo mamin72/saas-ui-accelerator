@@ -146,6 +146,38 @@ Notes:
 - Sorting and filtering on hidden columns remain stable and supported
 - `clearColumnVisibility()` restores defaults (all visible)
 
+## Row Selection And Bulk Helpers
+
+Selection is managed by stable row keys. By default, index-based keys are used; you can pass `rowKey` in component options for domain keys.
+
+```ts
+const table = new JsonTableComponent({
+  data: jsonString,
+  columns,
+  rowKey: "id"
+});
+
+table.setSelectedRowKeys(["u1"]);
+table.selectAllFilteredRows();
+
+const selectedKeys = table.getSelectedRowKeys();
+const selectedRows = table.getSelectedRows();
+const selectionInfo = table.getSelectionInfo();
+
+const output = await table.executeBulkAction((context) => ({
+  count: context.selectedRows.length,
+  keys: context.selectedRowKeys
+}));
+```
+
+Selection helpers:
+
+- select by key: `selectRowByKey`, `deselectRowByKey`, `toggleRowSelectionByKey`
+- select by row object: `selectRow`, `deselectRow`, `toggleRowSelection`
+- select-all modes: `selectAllRows`, `selectAllFilteredRows`, `selectAllPaginatedRows`
+- read helpers: `getSelectedRows`, `getSelectedFilteredRows`, `getSelectedPaginatedRows`, `getSelectionInfo`
+- clear helpers: `setSelectedRowKeys`, `clearSelection`
+
 ## Supported Column Data Types
 
 - `text`

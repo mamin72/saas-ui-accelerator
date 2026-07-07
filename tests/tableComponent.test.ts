@@ -601,6 +601,92 @@ describe('JsonTableComponent', () => {
     expect(() => component.toggleColumnVisibility('missing')).toThrow("Invalid column 'missing'.");
   });
 
+  it('supports selecting rows by key and row object', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.selectRowByKey(0);
+    expect(component.getSelectedRowKeys()).toEqual([0]);
+    expect(component.getSelectedRows().map((x) => x.name)).toEqual(['Alice']);
+
+    const bob = component.getSortedRows().find((row) => row.name === 'bob');
+    if (bob == null) {
+      throw new Error('Expected bob row.');
+    }
+
+    component.selectRow(bob);
+    expect(component.getSelectedRows().map((x) => x.name)).toEqual(['Alice', 'bob']);
+
+    component.toggleRowSelectionByKey(0);
+    expect(component.getSelectedRowKeys()).toEqual([1]);
+    expect(component.isRowSelectedByKey(1)).toBe(true);
+    expect(component.isRowSelected(bob)).toBe(true);
+  });
+
+  it('supports select-all helpers and selection info', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    component.setFilters([{ columnKey: 'active', operator: 'isTrue' }]);
+    component.setPagination({ pageIndex: 0, pageSize: 1 });
+
+    component.selectAllFilteredRows();
+    expect(component.getSelectedFilteredRows().map((x) => x.name)).toEqual(['Alice']);
+    expect(component.getSelectionInfo().allFilteredSelected).toBe(true);
+
+    component.clearSelection();
+    component.selectAllPaginatedRows();
+    expect(component.getSelectedPaginatedRows().map((x) => x.name)).toEqual(['Alice']);
+    expect(component.getSelectionInfo().allPaginatedSelected).toBe(true);
+
+    component.clearSelection();
+    component.selectAllRows();
+    expect(component.getSelectedRows().length).toBe(2);
+  });
+
+  it('supports custom rowKey and validates unknown or duplicate row keys', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { id: 'u1', name: 'Alice' },
+        { id: 'u2', name: 'Bob' },
+      ],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+      rowKey: 'id',
+    });
+
+    component.setSelectedRowKeys(['u2']);
+    expect(component.getSelectedRows().map((x) => x.name)).toEqual(['Bob']);
+    expect(() => component.selectRowByKey('missing')).toThrow("Unknown row key 'missing'.");
+
+    expect(
+      () =>
+        new JsonTableComponent({
+          data: [
+            { id: 'dup', name: 'A' },
+            { id: 'dup', name: 'B' },
+          ],
+          columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+          rowKey: 'id',
+        })
+    ).toThrow('Duplicate row key');
+  });
+
+  it('executes bulk action handler with selected row context', async () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    component.selectRowByKey(0);
+
+    const result = await component.executeBulkAction((context) => ({
+      selected: context.selectedRows.map((x) => x.name),
+      selectedKeys: context.selectedRowKeys,
+      totalFiltered: context.filteredRows.length,
+      totalPaginated: context.paginatedRows.length,
+    }));
+
+    expect(result).toEqual({
+      selected: ['Alice'],
+      selectedKeys: [0],
+      totalFiltered: 2,
+      totalPaginated: 2,
+    });
+  });
+
   it('adds action column and exposes default mui action icons', () => {
     const routerCalls: string[] = [];
     const actionColumn = createDefaultMuiActionColumn({
