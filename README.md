@@ -2,6 +2,37 @@
 
 Reusable TypeScript sorting component library.
 
+## Feature Status
+
+### Available Now
+
+- Core sorting engine: `sortByRules`
+- Built-in format codecs and parse+sort APIs: JSON, JSONL/NDJSON, CSV, TSV, XML, YAML
+- Table engine: `JsonTableComponent` with sortable headers and datatype-aware formatting
+- Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
+- Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
+
+### Planned (Future)
+
+See [roadmap.md](roadmap.md) for phased delivery details. Summary of next major component tracks:
+
+1. Auth Kit
+2. Billing Kit
+3. Tenant and Org Kit
+4. Data Grid Pro expansion
+5. Forms and Validation Kit
+6. Workflow and Automation UI
+7. Analytics and Dashboard Kit
+10. Onboarding and Adoption Kit
+
+### README Maintenance Rule
+
+For every feature PR:
+
+1. Add newly shipped capabilities to `Available Now`.
+2. Remove completed items from `Planned (Future)` and keep them in `roadmap.md` as delivered milestones.
+3. Keep examples and API references aligned with the current release state.
+
 ## Data Format Contract
 
 `sort_component` now supports modern input formats directly through built-in codecs.
