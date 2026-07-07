@@ -9,6 +9,7 @@ Reusable TypeScript sorting component library.
 - Core sorting engine: `sortByRules`
 - Built-in format codecs and parse+sort APIs: JSON, JSONL/NDJSON, CSV, TSV, XML, YAML
 - Table engine: `JsonTableComponent` with sortable headers and datatype-aware formatting
+- Multi-column sorting support with stable precedence (`setSortRules`, `appendSort`)
 - Table filtering engine with AND-combined filters (`contains`, `equals`, `startsWith`, `eq`, `gt`, `gte`, `lt`, `lte`, `between`, `isTrue`, `isFalse`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
@@ -95,6 +96,14 @@ table.toggleSort("name");
 const headers = table.getHeaders();
 const rows = table.getTableRows();
 
+table.setSortRules([
+	{ columnKey: "createdUtc", direction: "desc" },
+	{ columnKey: "name", direction: "asc" }
+]);
+
+table.appendSort("amount", "desc");
+const activeSortRules = table.getSortRules();
+
 table.setFilters([
 	{ columnKey: "name", operator: "contains", value: "ali" },
 	{ columnKey: "age", operator: "gte", value: 30 }
@@ -118,6 +127,13 @@ Filter operators by datatype:
 - text/enum: `contains`, `equals`, `startsWith`
 - number/decimal/currency/date/datetime: `eq`, `gt`, `gte`, `lt`, `lte`, `between`
 - boolean: `isTrue`, `isFalse`, `eq`
+
+Sorting APIs:
+
+- `toggleSort(columnKey)` (backward-compatible single-column toggle)
+- `setSortRules([{ columnKey, direction }, ...])` (replace with multi-column precedence)
+- `appendSort(columnKey, direction?)` (append or update a column in precedence order)
+- `getSortRules()` (read active multi-sort precedence)
 
 Action column support:
 

@@ -128,13 +128,14 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private readonly rows: readonly T[];
   private readonly columns: readonly TableColumn<T>[];
   private readonly actionColumn: TableActionColumn<T> | undefined;
-  private sortState: SortState | undefined;
+  private sortState: readonly SortState[];
   private filterState: readonly TableFilter<T>[];
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
     this.columns = this.normalizeColumns(options.columns);
     this.actionColumn = options.actionColumn;
+    this.sortState = [];
     this.filterState = [];
   }
 
@@ -143,7 +144,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       key: column.key,
       header: column.header,
       sortable: column.sortable !== false,
-      sortDirection: this.sortState?.columnKey === column.key ? this.sortState.direction : undefined,
+      sortDirection: this.getColumnSortDirection(column.key),
     }));
 
     if (this.actionColumn != null) {
@@ -159,6 +160,21 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   }
 
   public getSortState(): SortState | undefined {
+    return this.sortState[0];
+  }
+
+  public getSortRules(): readonly SortState[] {
+    return this.sortState;
+  }
+
+  public setSortRules(sortRules: readonly SortState[]): readonly SortState[] {
+    this.sortState = this.normalizeSortRules(sortRules);
+    return this.sortState;
+  }
+
+  public appendSort(columnKey: string, direction: TableSortDirection = 'asc'): readonly SortState[] {
+    this.assertSortableColumn(columnKey);
+    this.sortState = this.normalizeSortRules([...this.sortState, { columnKey, direction }]);
     return this.sortState;
   }
 
@@ -180,48 +196,57 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   }
 
   public clearSort(): void {
-    this.sortState = undefined;
+    this.sortState = [];
   }
 
   public toggleSort(columnKey: string): SortState | undefined {
     const column = this.columns.find((item) => item.key === columnKey);
     if (column == null || column.sortable === false) {
-      return this.sortState;
+      return this.sortState[0];
     }
 
-    if (this.sortState == null || this.sortState.columnKey !== columnKey) {
-      this.sortState = { columnKey, direction: 'asc' };
-      return this.sortState;
+    const current = this.sortState[0];
+    if (current == null || current.columnKey !== columnKey) {
+      this.sortState = [{ columnKey, direction: 'asc' }];
+      return this.sortState[0];
     }
 
-    this.sortState = {
+    this.sortState = [{
       columnKey,
-      direction: this.sortState.direction === 'asc' ? 'desc' : 'asc',
-    };
+      direction: current.direction === 'asc' ? 'desc' : 'asc',
+    }];
 
-    return this.sortState;
+    return this.sortState[0];
   }
 
   public getSortedRows(): T[] {
     const sourceRows = this.getFilteredRows();
 
-    if (this.sortState == null) {
+    if (this.sortState.length === 0) {
       return sourceRows;
     }
 
-    const column = this.columns.find((item) => item.key === this.sortState?.columnKey);
-    if (column == null) {
+    const sortRules = this.sortState
+      .map((rule, index) => {
+        const column = this.columns.find((item) => item.key === rule.columnKey);
+        if (column == null || column.sortable === false) {
+          return undefined;
+        }
+
+        return {
+          id: `${column.key}-${index}`,
+          direction: rule.direction,
+          nulls: 'last' as const,
+          selector: (row: T) => this.toSortableValue(this.getColumnValue(row, column), column),
+        };
+      })
+      .filter((rule): rule is NonNullable<typeof rule> => rule != null);
+
+    if (sortRules.length === 0) {
       return sourceRows;
     }
 
-    return sortByRules(sourceRows, [
-      {
-        id: column.key,
-        direction: this.sortState.direction,
-        nulls: 'last',
-        selector: (row) => this.toSortableValue(this.getColumnValue(row, column), column),
-      },
-    ]);
+    return sortByRules(sourceRows, sortRules);
   }
 
   public getTableRows(): readonly TableRowState[] {
@@ -400,6 +425,42 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       }
     } catch {
       throw new Error(`Invalid currency code '${code}'. Use a valid ISO 4217 code.`);
+    }
+  }
+
+  private getColumnSortDirection(columnKey: string): TableSortDirection | undefined {
+    return this.sortState.find((rule) => rule.columnKey === columnKey)?.direction;
+  }
+
+  private normalizeSortRules(sortRules: readonly SortState[]): readonly SortState[] {
+    const normalized: SortState[] = [];
+    const seen = new Set<string>();
+
+    for (let index = sortRules.length - 1; index >= 0; index -= 1) {
+      const rule = sortRules[index];
+      if (rule == null || seen.has(rule.columnKey)) {
+        continue;
+      }
+
+      this.assertSortableColumn(rule.columnKey);
+      seen.add(rule.columnKey);
+      normalized.unshift({
+        columnKey: rule.columnKey,
+        direction: rule.direction,
+      });
+    }
+
+    return normalized;
+  }
+
+  private assertSortableColumn(columnKey: string): void {
+    const column = this.columns.find((item) => item.key === columnKey);
+    if (column == null) {
+      throw new Error(`Invalid sort column '${columnKey}'.`);
+    }
+
+    if (column.sortable === false) {
+      throw new Error(`Column '${columnKey}' is not sortable.`);
     }
   }
 

@@ -50,6 +50,27 @@ const headers = table.getHeaders();
 const rows = table.getTableRows();
 ```
 
+## Multi-Column Sorting API
+
+Use explicit sort rules when you need deterministic precedence across multiple columns.
+
+```ts
+table.setSortRules([
+  { columnKey: "createdUtc", direction: "desc" },
+  { columnKey: "name", direction: "asc" }
+]);
+
+table.appendSort("amount", "desc");
+
+const sortRules = table.getSortRules();
+```
+
+Notes:
+
+- `setSortRules(...)` replaces the current rule list
+- `appendSort(...)` appends or updates a rule while keeping a stable precedence order
+- `toggleSort(...)` remains backward-compatible and switches to single-column sorting mode
+
 ## Filtering API
 
 Set filters using `setFilters(...)`. Filters are combined with logical AND.

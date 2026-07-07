@@ -106,7 +106,7 @@ These are the full target modules for a complete SaaS-ready library.
 Work strictly from top to bottom. Do not start the next item until the current item is complete.
 
 1. [x] Filtering engine for table rows.
-2. [ ] Multi-column sorting in table API.
+2. [x] Multi-column sorting in table API.
 3. [ ] Pagination helpers.
 4. [ ] Column visibility state helpers.
 5. [ ] Row selection and bulk action state helpers.
@@ -122,8 +122,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 2: Multi-column sorting in table API.
+- Item 3: Pagination helpers.
 - Scope for next implementation:
-- Stable precedence ordering across multiple sort rules.
-- Backward compatible with existing `toggleSort` behavior.
-- Optional convenience API for replacing or appending sort rules.
+- Client-side paging API with page index and page size controls.
+- Expose total rows and page metadata for UI rendering.
+- Keep filtering and sorting behavior applied before paging.

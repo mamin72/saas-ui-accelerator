@@ -243,6 +243,92 @@ describe('JsonTableComponent', () => {
     expect(component.getSortedRows().map((x) => x.when)).toEqual(['2026-01-01T00:00:00Z', '2026-01-03T00:00:00Z']);
   });
 
+  it('supports multi-column sorting with stable precedence', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { name: 'Bob', age: 30 },
+        { name: 'Alice', age: 30 },
+        { name: 'Carol', age: 20 },
+      ],
+      columns: [
+        { key: 'name', header: 'Name', dataType: 'text' },
+        { key: 'age', header: 'Age', dataType: 'number' },
+      ],
+    });
+
+    component.setSortRules([
+      { columnKey: 'age', direction: 'asc' },
+      { columnKey: 'name', direction: 'asc' },
+    ]);
+
+    expect(component.getSortedRows().map((x) => `${x.age}-${x.name}`)).toEqual(['20-Carol', '30-Alice', '30-Bob']);
+  });
+
+  it('supports appendSort convenience API for additional precedence rules', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { group: 'A', score: 2, name: 'Amy' },
+        { group: 'A', score: 2, name: 'Zoe' },
+        { group: 'A', score: 1, name: 'Ben' },
+      ],
+      columns: [
+        { key: 'group', header: 'Group', dataType: 'text' },
+        { key: 'score', header: 'Score', dataType: 'number' },
+        { key: 'name', header: 'Name', dataType: 'text' },
+      ],
+    });
+
+    component.appendSort('group', 'asc');
+    component.appendSort('score', 'desc');
+    component.appendSort('name', 'asc');
+
+    expect(component.getSortRules()).toEqual([
+      { columnKey: 'group', direction: 'asc' },
+      { columnKey: 'score', direction: 'desc' },
+      { columnKey: 'name', direction: 'asc' },
+    ]);
+    expect(component.getSortedRows().map((x) => x.name)).toEqual(['Amy', 'Zoe', 'Ben']);
+  });
+
+  it('deduplicates sort rules by keeping last rule for same column', () => {
+    const component = new JsonTableComponent({
+      data: rows,
+      columns,
+    });
+
+    component.setSortRules([
+      { columnKey: 'name', direction: 'asc' },
+      { columnKey: 'age', direction: 'asc' },
+      { columnKey: 'name', direction: 'desc' },
+    ]);
+
+    expect(component.getSortRules()).toEqual([
+      { columnKey: 'age', direction: 'asc' },
+      { columnKey: 'name', direction: 'desc' },
+    ]);
+  });
+
+  it('keeps toggleSort backward compatible by replacing with single active sort', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    component.setSortRules([
+      { columnKey: 'age', direction: 'asc' },
+      { columnKey: 'name', direction: 'asc' },
+    ]);
+
+    component.toggleSort('name');
+    expect(component.getSortRules()).toEqual([{ columnKey: 'name', direction: 'asc' }]);
+
+    component.toggleSort('name');
+    expect(component.getSortRules()).toEqual([{ columnKey: 'name', direction: 'desc' }]);
+  });
+
+  it('throws for invalid multi-sort column configuration', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    expect(() => component.setSortRules([{ columnKey: 'missing', direction: 'asc' }])).toThrow("Invalid sort column 'missing'.");
+    expect(() => component.appendSort('sortableFlag', 'asc')).toThrow("Column 'sortableFlag' is not sortable.");
+  });
+
   it('keeps unsorted data order when sort column does not exist', () => {
     const component = new JsonTableComponent({ data: rows, columns });
     component.toggleSort('missing');
