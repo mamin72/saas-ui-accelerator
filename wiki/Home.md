@@ -8,6 +8,7 @@ Welcome to the official wiki for sort_component.
 - [Use in Your App](Use-in-Your-App)
 - [API Reference](API-Reference)
 - [Data Formats](Data-Formats)
+- [Table Component](Table-Component)
 - [Licensing](Licensing)
 - [FAQ](FAQ)
 

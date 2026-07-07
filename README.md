@@ -41,6 +41,38 @@ const sorted = await parseAndSortFromStream(stream, {
 });
 ```
 
+## Json Table Component
+
+The package also includes a reusable table component model that accepts JSON and
+supports click-style header toggle sorting.
+
+```ts
+import { JsonTableComponent } from "sort_component";
+
+const table = new JsonTableComponent({
+	data: jsonString,
+	columns: [
+		{ key: "name", header: "Name", dataType: "text", sortable: true },
+		{ key: "amount", header: "Amount", dataType: "currency", currencyCode: "USD" },
+		{ key: "createdUtc", header: "Created", dataType: "date", temporalType: "datetime", convertUtcToClientLocal: true },
+		{ key: "active", header: "Active", dataType: "boolean", booleanDisplay: "icon" }
+	]
+});
+
+table.toggleSort("name");
+const headers = table.getHeaders();
+const rows = table.getTableRows();
+```
+
+Column data types and formatting:
+
+- `text`
+- `number` (right aligned)
+- `decimal` (right aligned, configurable decimal places)
+- `currency` (right aligned, default 2 decimals, ISO currency code)
+- `date` and `datetime` (US, UK, Chinese locales; short or long format; UTC-to-local option)
+- `boolean` (`Yes/No` or `✓/✗`)
+
 ## Licensing
 
 This project uses a dual-license model:
