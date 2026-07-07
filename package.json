@@ -1,0 +1,43 @@
+{
+  "name": "sort_component",
+  "version": "1.0.0",
+  "description": "Reusable TypeScript sorting component library",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests vitest.config.ts --ext .ts --max-warnings 0",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "quality:check": "npm run typecheck && npm run lint && npm run test:coverage"
+  },
+  "keywords": [
+    "sorting",
+    "typescript",
+    "rules",
+    "utility"
+  ],
+  "author": "Manish Amin",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^4.1.10"
+  }
+}
