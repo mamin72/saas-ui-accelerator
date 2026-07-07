@@ -249,6 +249,88 @@ describe('JsonTableComponent', () => {
     expect(component.getSortedRows().map((x) => x.name)).toEqual(['Alice', 'bob']);
   });
 
+  it('filters text with contains, startsWith, and equals', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([{ columnKey: 'name', operator: 'contains', value: 'AL' }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['Alice']);
+
+    component.setFilters([{ columnKey: 'name', operator: 'startsWith', value: 'bo' }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['bob']);
+
+    component.setFilters([{ columnKey: 'name', operator: 'equals', value: 'alice' }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['Alice']);
+  });
+
+  it('filters numeric columns with gt and between', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([{ columnKey: 'age', operator: 'gt', value: 30 }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['Alice']);
+
+    component.setFilters([{ columnKey: 'age', operator: 'between', value: 29, valueTo: 30 }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['bob']);
+  });
+
+  it('filters date and boolean columns', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([{ columnKey: 'createdUtc', operator: 'lte', value: '2026-01-01T09:30:00.000Z' }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['bob']);
+
+    component.setFilters([{ columnKey: 'active', operator: 'isTrue' }]);
+    expect(component.getFilteredRows().map((x) => x.name)).toEqual(['Alice']);
+  });
+
+  it('combines filters with logical AND and applies sorting to filtered results', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([
+      { columnKey: 'active', operator: 'eq', value: true },
+      { columnKey: 'age', operator: 'gte', value: 31 },
+    ]);
+    component.toggleSort('name');
+
+    expect(component.getSortedRows().map((x) => x.name)).toEqual(['Alice']);
+    expect(component.getTableRows().length).toBe(1);
+  });
+
+  it('clears filters and restores full row set', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([{ columnKey: 'name', operator: 'contains', value: 'ali' }]);
+    expect(component.getFilteredRows().length).toBe(1);
+
+    component.clearFilters();
+    expect(component.getFilteredRows().length).toBe(2);
+    expect(component.getFilters()).toEqual([]);
+  });
+
+  it('throws for invalid filter operators and missing between bounds', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    expect(() => component.setFilters([{ columnKey: 'age', operator: 'contains', value: '3' }])).toThrow(
+      "Filter operator 'contains' is not supported"
+    );
+
+    expect(() => component.setFilters([{ columnKey: 'age', operator: 'between', value: 10 }])).toThrow(
+      "Filter operator 'between' requires both value and valueTo"
+    );
+  });
+
+  it('supports enum data type filtering with equals', () => {
+    const enumComponent = new JsonTableComponent({
+      data: [
+        { plan: 'Pro' },
+        { plan: 'Basic' },
+      ],
+      columns: [{ key: 'plan', header: 'Plan', dataType: 'enum' }],
+    });
+
+    enumComponent.setFilters([{ columnKey: 'plan', operator: 'equals', value: 'pro' }]);
+    expect(enumComponent.getFilteredRows().map((x) => x.plan)).toEqual(['Pro']);
+  });
+
   it('adds action column and exposes default mui action icons', () => {
     const routerCalls: string[] = [];
     const actionColumn = createDefaultMuiActionColumn({

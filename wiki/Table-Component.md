@@ -5,6 +5,7 @@
 `JsonTableComponent` accepts JSON input and provides a table-ready model with:
 
 - header-driven toggle sorting (`asc` / `desc`)
+- reusable AND-based filtering engine
 - per-column datatype configuration
 - datatype-aware formatting and alignment
 
@@ -49,6 +50,31 @@ const headers = table.getHeaders();
 const rows = table.getTableRows();
 ```
 
+## Filtering API
+
+Set filters using `setFilters(...)`. Filters are combined with logical AND.
+
+```ts
+table.setFilters([
+  { columnKey: "name", operator: "contains", value: "ali" },
+  { columnKey: "age", operator: "gte", value: 30 }
+]);
+
+const filteredRows = table.getFilteredRows();
+```
+
+Clear filters:
+
+```ts
+table.clearFilters();
+```
+
+Supported operators by datatype:
+
+- text and enum: `contains`, `equals`, `startsWith`
+- number, decimal, currency, date, datetime: `eq`, `gt`, `gte`, `lt`, `lte`, `between`
+- boolean: `isTrue`, `isFalse`, `eq`
+
 ## Supported Column Data Types
 
 - `text`
@@ -58,6 +84,7 @@ const rows = table.getTableRows();
 - `date`
 - `datetime`
 - `boolean`
+- `enum`
 
 ## Formatting Rules
 

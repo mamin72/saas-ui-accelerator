@@ -9,6 +9,7 @@ Reusable TypeScript sorting component library.
 - Core sorting engine: `sortByRules`
 - Built-in format codecs and parse+sort APIs: JSON, JSONL/NDJSON, CSV, TSV, XML, YAML
 - Table engine: `JsonTableComponent` with sortable headers and datatype-aware formatting
+- Table filtering engine with AND-combined filters (`contains`, `equals`, `startsWith`, `eq`, `gt`, `gte`, `lt`, `lte`, `between`, `isTrue`, `isFalse`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -93,6 +94,13 @@ const table = new JsonTableComponent({
 table.toggleSort("name");
 const headers = table.getHeaders();
 const rows = table.getTableRows();
+
+table.setFilters([
+	{ columnKey: "name", operator: "contains", value: "ali" },
+	{ columnKey: "age", operator: "gte", value: 30 }
+]);
+
+const filteredRows = table.getFilteredRows();
 ```
 
 Column data types and formatting:
@@ -103,6 +111,13 @@ Column data types and formatting:
 - `currency` (right aligned, default 2 decimals, ISO currency code)
 - `date` and `datetime` (US, UK, Chinese locales; short or long format; UTC-to-local option)
 - `boolean` (`Yes/No` or `✓/✗`)
+- `enum` (text semantics; useful for fixed-value columns like plans/statuses)
+
+Filter operators by datatype:
+
+- text/enum: `contains`, `equals`, `startsWith`
+- number/decimal/currency/date/datetime: `eq`, `gt`, `gte`, `lt`, `lte`, `between`
+- boolean: `isTrue`, `isFalse`, `eq`
 
 Action column support:
 
