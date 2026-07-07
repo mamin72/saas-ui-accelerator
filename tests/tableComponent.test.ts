@@ -417,6 +417,130 @@ describe('JsonTableComponent', () => {
     expect(enumComponent.getFilteredRows().map((x) => x.plan)).toEqual(['Pro']);
   });
 
+  it('supports client-side pagination with page index and page size controls', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+        { id: 4 },
+        { id: 5 },
+      ],
+      columns: [{ key: 'id', header: 'Id', dataType: 'number' }],
+    });
+
+    component.setPagination({ pageIndex: 1, pageSize: 2 });
+    expect(component.getPaginatedRows().map((x) => x.id)).toEqual([3, 4]);
+    expect(component.getTableRows().map((x) => x.source.id)).toEqual([3, 4]);
+  });
+
+  it('returns page metadata for paged and unpaged scenarios', () => {
+    const component = new JsonTableComponent({
+      data: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      columns: [{ key: 'id', header: 'Id', dataType: 'number' }],
+    });
+
+    expect(component.getPageInfo()).toEqual({
+      pageIndex: 0,
+      pageSize: 3,
+      totalRows: 3,
+      totalPages: 1,
+      hasPreviousPage: false,
+      hasNextPage: false,
+      startRow: 1,
+      endRow: 3,
+    });
+
+    component.setPagination({ pageIndex: 1, pageSize: 2 });
+    expect(component.getPageInfo()).toEqual({
+      pageIndex: 1,
+      pageSize: 2,
+      totalRows: 3,
+      totalPages: 2,
+      hasPreviousPage: true,
+      hasNextPage: false,
+      startRow: 3,
+      endRow: 3,
+    });
+  });
+
+  it('applies filtering and sorting before pagination', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { name: 'Bob', active: true },
+        { name: 'Alice', active: true },
+        { name: 'Zed', active: false },
+      ],
+      columns: [
+        { key: 'name', header: 'Name', dataType: 'text' },
+        { key: 'active', header: 'Active', dataType: 'boolean' },
+      ],
+    });
+
+    component.setFilters([{ columnKey: 'active', operator: 'isTrue' }]);
+    component.setSortRules([{ columnKey: 'name', direction: 'asc' }]);
+    component.setPagination({ pageIndex: 0, pageSize: 1 });
+
+    expect(component.getPaginatedRows().map((x) => x.name)).toEqual(['Alice']);
+  });
+
+  it('supports setPageIndex and setPageSize controls', () => {
+    const component = new JsonTableComponent({
+      data: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+      columns: [{ key: 'id', header: 'Id', dataType: 'number' }],
+    });
+
+    component.setPageSize(2);
+    component.setPageIndex(1);
+    expect(component.getPagination()).toEqual({ pageIndex: 1, pageSize: 2 });
+    expect(component.getPaginatedRows().map((x) => x.id)).toEqual([3, 4]);
+
+    component.setPageSize(3);
+    expect(component.getPagination()).toEqual({ pageIndex: 0, pageSize: 3 });
+
+    component.setPageSize(2, { resetToFirstPage: false });
+    component.setPageIndex(1);
+    component.setPageSize(3, { resetToFirstPage: false });
+    expect(component.getPagination()).toEqual({ pageIndex: 1, pageSize: 3 });
+  });
+
+  it('clamps out-of-range page index based on current row count', () => {
+    const component = new JsonTableComponent({
+      data: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      columns: [{ key: 'id', header: 'Id', dataType: 'number' }],
+    });
+
+    component.setPagination({ pageIndex: 99, pageSize: 2 });
+    expect(component.getPageInfo().pageIndex).toBe(1);
+    expect(component.getPaginatedRows().map((x) => x.id)).toEqual([3]);
+  });
+
+  it('throws for invalid pagination arguments', () => {
+    const component = new JsonTableComponent({
+      data: [{ id: 1 }],
+      columns: [{ key: 'id', header: 'Id', dataType: 'number' }],
+    });
+
+    expect(() => component.setPagination({ pageIndex: -1, pageSize: 10 })).toThrow('Invalid page index');
+    expect(() => component.setPagination({ pageIndex: 0, pageSize: 0 })).toThrow('Invalid page size');
+    expect(() => component.setPageIndex(-1)).toThrow('Invalid page index');
+    expect(() => component.setPageSize(0)).toThrow('Invalid page size');
+  });
+
+  it('clears pagination state and returns full row set', () => {
+    const component = new JsonTableComponent({
+      data: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      columns: [{ key: 'id', header: 'Id', dataType: 'number' }],
+    });
+
+    component.setPagination({ pageIndex: 0, pageSize: 1 });
+    expect(component.getTableRows().length).toBe(1);
+    component.clearPagination();
+
+    expect(component.getPagination()).toBeUndefined();
+    expect(component.getTableRows().length).toBe(3);
+  });
+
   it('adds action column and exposes default mui action icons', () => {
     const routerCalls: string[] = [];
     const actionColumn = createDefaultMuiActionColumn({

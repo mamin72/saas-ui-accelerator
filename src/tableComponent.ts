@@ -98,6 +98,22 @@ export interface TableFilter<T extends Record<string, unknown>> {
   readonly caseSensitive?: boolean;
 }
 
+export interface TablePaginationState {
+  readonly pageIndex: number;
+  readonly pageSize: number;
+}
+
+export interface TablePageInfo {
+  readonly pageIndex: number;
+  readonly pageSize: number;
+  readonly totalRows: number;
+  readonly totalPages: number;
+  readonly hasPreviousPage: boolean;
+  readonly hasNextPage: boolean;
+  readonly startRow: number;
+  readonly endRow: number;
+}
+
 export interface TableHeaderState {
   readonly key: string;
   readonly header: string;
@@ -130,6 +146,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private readonly actionColumn: TableActionColumn<T> | undefined;
   private sortState: readonly SortState[];
   private filterState: readonly TableFilter<T>[];
+  private paginationState: TablePaginationState | undefined;
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
@@ -137,6 +154,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.actionColumn = options.actionColumn;
     this.sortState = [];
     this.filterState = [];
+    this.paginationState = undefined;
   }
 
   public getHeaders(): readonly TableHeaderState[] {
@@ -195,6 +213,51 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.filterState = [];
   }
 
+  public getPagination(): TablePaginationState | undefined {
+    return this.paginationState;
+  }
+
+  public setPagination(pagination: TablePaginationState | undefined): TablePaginationState | undefined {
+    if (pagination == null) {
+      this.paginationState = undefined;
+      return this.paginationState;
+    }
+
+    this.assertValidPageIndex(pagination.pageIndex);
+    this.assertValidPageSize(pagination.pageSize);
+    this.paginationState = {
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize,
+    };
+    return this.paginationState;
+  }
+
+  public clearPagination(): void {
+    this.paginationState = undefined;
+  }
+
+  public setPageIndex(pageIndex: number): TablePaginationState {
+    this.assertValidPageIndex(pageIndex);
+    const current = this.paginationState ?? { pageIndex: 0, pageSize: 25 };
+    this.paginationState = {
+      pageIndex,
+      pageSize: current.pageSize,
+    };
+
+    return this.paginationState;
+  }
+
+  public setPageSize(pageSize: number, options?: { readonly resetToFirstPage?: boolean }): TablePaginationState {
+    this.assertValidPageSize(pageSize);
+    const current = this.paginationState ?? { pageIndex: 0, pageSize };
+    this.paginationState = {
+      pageIndex: options?.resetToFirstPage === false ? current.pageIndex : 0,
+      pageSize,
+    };
+
+    return this.paginationState;
+  }
+
   public clearSort(): void {
     this.sortState = [];
   }
@@ -250,10 +313,57 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   }
 
   public getTableRows(): readonly TableRowState[] {
-    return this.getSortedRows().map((row) => ({
+    return this.getPaginatedRows().map((row) => ({
       source: row,
       cells: this.toCells(row),
     }));
+  }
+
+  public getPaginatedRows(): T[] {
+    const sortedRows = this.getSortedRows();
+    if (this.paginationState == null) {
+      return sortedRows;
+    }
+
+    const { pageSize } = this.paginationState;
+    const pageIndex = this.getEffectivePageIndex(sortedRows.length, pageSize, this.paginationState.pageIndex);
+    const start = pageIndex * pageSize;
+    const end = start + pageSize;
+    return sortedRows.slice(start, end);
+  }
+
+  public getPageInfo(): TablePageInfo {
+    const totalRows = this.getSortedRows().length;
+
+    if (this.paginationState == null) {
+      return {
+        pageIndex: 0,
+        pageSize: totalRows,
+        totalRows,
+        totalPages: totalRows > 0 ? 1 : 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+        startRow: totalRows > 0 ? 1 : 0,
+        endRow: totalRows,
+      };
+    }
+
+    const { pageSize } = this.paginationState;
+    const totalPages = totalRows > 0 ? Math.ceil(totalRows / pageSize) : 0;
+    const pageIndex = this.getEffectivePageIndex(totalRows, pageSize, this.paginationState.pageIndex);
+    const startRow = totalRows > 0 ? pageIndex * pageSize + 1 : 0;
+    const endRow = totalRows > 0 ? Math.min((pageIndex + 1) * pageSize, totalRows) : 0;
+
+    return {
+      pageIndex,
+      pageSize,
+      totalRows,
+      totalPages,
+      hasPreviousPage: pageIndex > 0,
+      hasNextPage: totalPages > 0 && pageIndex < totalPages - 1,
+      startRow,
+      endRow,
+    };
   }
 
   public getFilteredRows(): T[] {
@@ -426,6 +536,27 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     } catch {
       throw new Error(`Invalid currency code '${code}'. Use a valid ISO 4217 code.`);
     }
+  }
+
+  private assertValidPageIndex(pageIndex: number): void {
+    if (!Number.isInteger(pageIndex) || pageIndex < 0) {
+      throw new Error(`Invalid page index '${pageIndex}'. pageIndex must be an integer >= 0.`);
+    }
+  }
+
+  private assertValidPageSize(pageSize: number): void {
+    if (!Number.isInteger(pageSize) || pageSize <= 0) {
+      throw new Error(`Invalid page size '${pageSize}'. pageSize must be an integer > 0.`);
+    }
+  }
+
+  private getEffectivePageIndex(totalRows: number, pageSize: number, requestedPageIndex: number): number {
+    if (totalRows <= 0) {
+      return 0;
+    }
+
+    const maxPageIndex = Math.max(0, Math.ceil(totalRows / pageSize) - 1);
+    return Math.min(Math.max(0, requestedPageIndex), maxPageIndex);
   }
 
   private getColumnSortDirection(columnKey: string): TableSortDirection | undefined {

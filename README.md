@@ -11,6 +11,7 @@ Reusable TypeScript sorting component library.
 - Table engine: `JsonTableComponent` with sortable headers and datatype-aware formatting
 - Multi-column sorting support with stable precedence (`setSortRules`, `appendSort`)
 - Table filtering engine with AND-combined filters (`contains`, `equals`, `startsWith`, `eq`, `gt`, `gte`, `lt`, `lte`, `between`, `isTrue`, `isFalse`)
+- Client-side pagination helpers with page controls and metadata (`setPagination`, `setPageSize`, `setPageIndex`, `getPageInfo`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -104,6 +105,13 @@ table.setSortRules([
 table.appendSort("amount", "desc");
 const activeSortRules = table.getSortRules();
 
+table.setPagination({ pageIndex: 0, pageSize: 25 });
+table.setPageIndex(1);
+table.setPageSize(50, { resetToFirstPage: true });
+
+const pageRows = table.getPaginatedRows();
+const pageInfo = table.getPageInfo();
+
 table.setFilters([
 	{ columnKey: "name", operator: "contains", value: "ali" },
 	{ columnKey: "age", operator: "gte", value: 30 }
@@ -134,6 +142,15 @@ Sorting APIs:
 - `setSortRules([{ columnKey, direction }, ...])` (replace with multi-column precedence)
 - `appendSort(columnKey, direction?)` (append or update a column in precedence order)
 - `getSortRules()` (read active multi-sort precedence)
+
+Pagination APIs:
+
+- `setPagination({ pageIndex, pageSize })`
+- `setPageIndex(pageIndex)`
+- `setPageSize(pageSize, { resetToFirstPage? })`
+- `getPaginatedRows()`
+- `getPageInfo()`
+- `clearPagination()`
 
 Action column support:
 

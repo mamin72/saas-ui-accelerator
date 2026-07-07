@@ -96,6 +96,30 @@ Supported operators by datatype:
 - number, decimal, currency, date, datetime: `eq`, `gt`, `gte`, `lt`, `lte`, `between`
 - boolean: `isTrue`, `isFalse`, `eq`
 
+## Pagination API
+
+Pagination is client-side and is applied after filtering and sorting.
+
+```ts
+table.setPagination({ pageIndex: 0, pageSize: 25 });
+table.setPageIndex(1);
+table.setPageSize(50, { resetToFirstPage: true });
+
+const pageRows = table.getPaginatedRows();
+const pageInfo = table.getPageInfo();
+```
+
+`getPageInfo()` returns:
+
+- `pageIndex`
+- `pageSize`
+- `totalRows`
+- `totalPages`
+- `hasPreviousPage`
+- `hasNextPage`
+- `startRow`
+- `endRow`
+
 ## Supported Column Data Types
 
 - `text`

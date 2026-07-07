@@ -107,7 +107,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 1. [x] Filtering engine for table rows.
 2. [x] Multi-column sorting in table API.
-3. [ ] Pagination helpers.
+3. [x] Pagination helpers.
 4. [ ] Column visibility state helpers.
 5. [ ] Row selection and bulk action state helpers.
 
@@ -122,8 +122,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 3: Pagination helpers.
+- Item 4: Column visibility state helpers.
 - Scope for next implementation:
-- Client-side paging API with page index and page size controls.
-- Expose total rows and page metadata for UI rendering.
-- Keep filtering and sorting behavior applied before paging.
+- Per-column visible/hidden state with sensible defaults.
+- APIs to toggle one column or set full visibility map.
+- Ensure hidden columns are excluded from table cell output while preserving sort/filter stability.
