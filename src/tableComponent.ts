@@ -1,5 +1,6 @@
 /* c8 ignore start */
 import { parseRecords } from './formatSupport';
+import { sortByRules } from './sortByRules';
 
 export type TableDataType = 'text' | 'number' | 'decimal' | 'currency' | 'date' | 'datetime' | 'boolean';
 export type DateLocaleStyle = 'US' | 'UK' | 'Chinese';
@@ -172,13 +173,14 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       return [...this.rows];
     }
 
-    const output = [...this.rows];
-    output.sort((left, right) => {
-      const compareResult = this.compareRows(left, right, column);
-      return this.sortState?.direction === 'asc' ? compareResult : -compareResult;
-    });
-
-    return output;
+    return sortByRules(this.rows, [
+      {
+        id: column.key,
+        direction: this.sortState.direction,
+        nulls: 'last',
+        selector: (row) => this.toSortableValue(this.getColumnValue(row, column), column),
+      },
+    ]);
   }
 
   public getTableRows(): readonly TableRowState[] {
@@ -350,25 +352,6 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     } catch {
       throw new Error(`Invalid currency code '${code}'. Use a valid ISO 4217 code.`);
     }
-  }
-
-  private compareRows(left: T, right: T, column: TableColumn<T>): number {
-    const leftSort = this.toSortableValue(this.getColumnValue(left, column), column);
-    const rightSort = this.toSortableValue(this.getColumnValue(right, column), column);
-
-    if (leftSort == null && rightSort == null) return 0;
-    if (leftSort == null) return 1;
-    if (rightSort == null) return -1;
-
-    if (typeof leftSort === 'string' && typeof rightSort === 'string') {
-      return leftSort.localeCompare(rightSort);
-    }
-
-    if (typeof leftSort === 'number' && typeof rightSort === 'number') {
-      return leftSort - rightSort;
-    }
-
-    return 0;
   }
 
   private toSortableValue(value: unknown, column: TableColumn<T>): string | number | null {
