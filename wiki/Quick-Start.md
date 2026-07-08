@@ -3,13 +3,13 @@
 ## Install
 
 ```bash
-npm install sort_component
+npm install saas-ui-accelerator
 ```
 
 ## Basic Example
 
 ```ts
-import { sortByRules, type SortRule } from "sort_component";
+import { sortByRules, type SortRule } from "saas-ui-accelerator";
 
 type Person = {
   lastName: string;
@@ -34,7 +34,7 @@ The library supports:
 - text streams (`parseAndSortFromStream`)
 
 ```ts
-import { parseAndSort } from "sort_component";
+import { parseAndSort } from "saas-ui-accelerator";
 
 const sorted = parseAndSort("name,score\\nA,1\\nB,3", {
   format: "csv",
@@ -49,3 +49,4 @@ See [Data Formats](Data-Formats) for full details.
 ```bash
 npm run quality:check
 ```
+

@@ -1,4 +1,4 @@
-# Sort Component Roadmap
+# SaaS UI Accelerator Roadmap
 
 This roadmap is designed for incremental delivery: complete one scoped item fully before starting the next.
 
@@ -136,3 +136,4 @@ Work strictly from top to bottom. Do not start the next item until the current i
 - Add benchmark harness for sorting, filtering, pagination, and selection operations.
 - Capture timing and throughput metrics for realistic data volumes.
 - Keep benchmark tooling deterministic and CI-friendly.
+

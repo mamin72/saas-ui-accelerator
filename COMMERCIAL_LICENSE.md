@@ -1,6 +1,6 @@
 # Commercial License Terms
 
-This document defines commercial licensing terms for sort_component.
+This document defines commercial licensing terms for saas-ui-accelerator.
 
 ## 1. Scope
 
@@ -52,3 +52,4 @@ Include the following in your request:
 ## 7. Effective Date
 
 These commercial licensing terms apply from the date they are published in this repository and may be updated in future versions.
+

@@ -1,6 +1,6 @@
 # Licensing
 
-sort_component uses a dual-license model.
+saas-ui-accelerator uses a dual-license model.
 
 - Non-commercial usage is allowed under the default repository license.
 - Commercial usage requires a paid commercial license.
@@ -13,3 +13,4 @@ See:
 For commercial terms, contact the owner:
 
 - https://github.com/mamin72
+

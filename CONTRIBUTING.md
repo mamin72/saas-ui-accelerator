@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for contributing to sort_component.
+Thank you for contributing to saas-ui-accelerator.
 
 ## Development Setup
 
@@ -52,3 +52,4 @@ Examples:
 - Lint passes
 - Documentation updated when needed
 - CHANGELOG updated for user-facing changes
+

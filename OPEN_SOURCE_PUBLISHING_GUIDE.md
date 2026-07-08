@@ -1,4 +1,4 @@
-# Open Source Publishing Guide for sort_component
+# Open Source Publishing Guide for saas-ui-accelerator
 
 This document explains how to prepare, publish, and consume this component as an open-source npm package.
 
@@ -48,11 +48,11 @@ Suggested package.json additions:
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mamin72/sort_component.git"
+    "url": "git+https://github.com/mamin72/saas-ui-accelerator.git"
   },
-  "homepage": "https://github.com/mamin72/sort_component#readme",
+  "homepage": "https://github.com/mamin72/saas-ui-accelerator#readme",
   "bugs": {
-    "url": "https://github.com/mamin72/sort_component/issues"
+    "url": "https://github.com/mamin72/saas-ui-accelerator/issues"
   },
   "keywords": [
     "sorting",
@@ -156,12 +156,12 @@ Optional automation:
 
 Install:
 
-- npm install sort_component
+- npm install saas-ui-accelerator
 
 Use in your app common components layer:
 
 ```ts
-import { sortByRules, type SortRule } from "sort_component";
+import { sortByRules, type SortRule } from "saas-ui-accelerator";
 
 type PersonName = {
   lastName: string;
@@ -195,3 +195,4 @@ export function sortPersonNames(items: PersonName[]): PersonName[] {
 - Run npm pack --dry-run
 - Publish with npm publish --access public
 - Tag release in GitHub
+

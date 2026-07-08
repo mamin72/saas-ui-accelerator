@@ -1,4 +1,4 @@
-# sort_component Wiki
+# saas-ui-accelerator Wiki
 
 - [Home](Home)
 - [Quick Start](Quick-Start)
@@ -8,3 +8,4 @@
 - [Table Component](Table-Component)
 - [Licensing](Licensing)
 - [FAQ](FAQ)
+

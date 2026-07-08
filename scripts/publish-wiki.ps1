@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory = $false)]
-  [string]$Repo = "mamin72/sort_component"
+  [string]$Repo = "mamin72/saas-ui-accelerator"
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,7 +12,7 @@ if (-not (Test-Path $wikiSource)) {
   throw "Wiki source folder not found at $wikiSource"
 }
 
-$temp = Join-Path $env:TEMP ("sort_component_wiki_" + [Guid]::NewGuid().ToString("N"))
+$temp = Join-Path $env:TEMP ("saas-ui-accelerator_wiki_" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $temp | Out-Null
 
 try {
@@ -40,3 +40,4 @@ finally {
     Remove-Item $temp -Recurse -Force
   }
 }
+

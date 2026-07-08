@@ -1,6 +1,6 @@
-# sort_component Wiki
+# saas-ui-accelerator Wiki
 
-Welcome to the official wiki for sort_component.
+Welcome to the official wiki for saas-ui-accelerator.
 
 ## Start Here
 
@@ -12,9 +12,9 @@ Welcome to the official wiki for sort_component.
 - [Licensing](Licensing)
 - [FAQ](FAQ)
 
-## What is sort_component?
+## What is saas-ui-accelerator?
 
-sort_component is a reusable TypeScript sorting library based on composable sort rules.
+saas-ui-accelerator is a reusable TypeScript sorting library based on composable sort rules.
 
 It is designed for app-level reuse from your common components layer.
 
@@ -24,3 +24,4 @@ The component expects typed arrays as input.
 
 - Direct: arrays of objects (or other typed items)
 - Indirect: text, streams, JSON, and XML must be parsed first
+

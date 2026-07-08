@@ -1,7 +1,7 @@
 {
-  "name": "sort_component",
+  "name": "saas-ui-accelerator",
   "version": "1.0.0",
-  "description": "Reusable TypeScript sorting component library",
+  "description": "Reusable TypeScript SaaS UI accelerator component library",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,11 +29,11 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mamin72/sort_component.git"
+    "url": "git+https://github.com/mamin72/saas-ui-accelerator.git"
   },
-  "homepage": "https://github.com/mamin72/sort_component#readme",
+  "homepage": "https://github.com/mamin72/saas-ui-accelerator#readme",
   "bugs": {
-    "url": "https://github.com/mamin72/sort_component/issues"
+    "url": "https://github.com/mamin72/saas-ui-accelerator/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -54,3 +54,4 @@
     "yaml": "^2.9.0"
   }
 }
+

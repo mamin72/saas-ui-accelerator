@@ -2,7 +2,7 @@
 
 ## Core Contract
 
-`sort_component` supports both:
+`saas-ui-accelerator` supports both:
 
 - direct array sorting with `sortByRules`
 - format-aware parsing + sorting with `parseAndSort` and `parseAndSortFromStream`
@@ -59,3 +59,4 @@ Use `parseAndSort` for external payload formats.
 ## Integration Pattern
 
 Keep rules in your app common components layer, and call format-aware APIs directly for file or stream payloads.
+

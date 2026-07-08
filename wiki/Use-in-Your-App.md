@@ -5,7 +5,7 @@ A good pattern is to wrap this library in your app's common components layer.
 ## Example Adapter
 
 ```ts
-import { sortByRules, type SortRule } from "sort_component";
+import { sortByRules, type SortRule } from "saas-ui-accelerator";
 
 export interface PersonName {
   readonly lastName: string;
@@ -31,3 +31,4 @@ export function sortPersonNames(items: readonly PersonName[]): PersonName[] {
 - Parse text/stream/JSON/XML into typed arrays before calling the sorter.
 
 For source format specifics, see [Data Formats](Data-Formats).
+

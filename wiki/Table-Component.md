@@ -12,7 +12,7 @@
 ## Create a Table Model
 
 ```ts
-import { JsonTableComponent } from "sort_component";
+import { JsonTableComponent } from "saas-ui-accelerator";
 
 const table = new JsonTableComponent({
   data: jsonString,
@@ -234,7 +234,7 @@ APIs:
 Use adapters to convert client-side table state into deterministic API-ready request models.
 
 ```ts
-import { createServerTableRequest } from "sort_component";
+import { createServerTableRequest } from "saas-ui-accelerator";
 
 const request = createServerTableRequest({
   sortRules: table.getSortRules(),
@@ -259,7 +259,7 @@ import {
   createColumnSchemaBuilder,
   createTypedTableComponent,
   defineTableColumns
-} from 'sort_component';
+} from 'saas-ui-accelerator';
 
 type UserRow = {
   id: string;
@@ -322,7 +322,7 @@ import {
   andActionPredicates,
   requireAllPermissions,
   requirePermission
-} from 'sort_component';
+} from 'saas-ui-accelerator';
 
 const actionColumn = createDefaultMuiActionColumn({
   router: { navigate: (to) => router.navigate(to) },
@@ -379,7 +379,7 @@ Telemetry callbacks are observational only: failures are swallowed to avoid impa
 The package also exports reusable formatter preset helpers for common regional defaults.
 
 ```ts
-import { currencyPacks, createDateFormatterPreset, createDateTimeFormatterPreset, timezonePacks } from "sort_component";
+import { currencyPacks, createDateFormatterPreset, createDateTimeFormatterPreset, timezonePacks } from "saas-ui-accelerator";
 
 const amountColumn = {
   key: "amount",
@@ -408,7 +408,7 @@ Helpers:
 Reusable validation helpers are exported for stricter input handling.
 
 ```ts
-import { assertCsvDelimiter, assertCurrencyCode, assertSupportedFormat, assertTableColumnConfig, assertValidRowKeyValue } from "sort_component";
+import { assertCsvDelimiter, assertCurrencyCode, assertSupportedFormat, assertTableColumnConfig, assertValidRowKeyValue } from "saas-ui-accelerator";
 ```
 
 Helpers:
@@ -424,7 +424,7 @@ Helpers:
 Use starter templates for fast table and parse+sort bootstrapping.
 
 ```ts
-import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "sort_component";
+import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "saas-ui-accelerator";
 
 const tableTemplate = createTableStarterTemplate({
   data: [{ id: 1, fullName: "Alice", active: true }],
@@ -527,7 +527,7 @@ Use the built-in helper to add `view`, `edit`, `archive`, and `delete` row actio
 - `archive` and `delete` include built-in confirmation before execution
 
 ```ts
-import { JsonTableComponent, createDefaultMuiActionColumn } from "sort_component";
+import { JsonTableComponent, createDefaultMuiActionColumn } from "saas-ui-accelerator";
 
 const actionColumn = createDefaultMuiActionColumn({
   router: { navigate: (to) => router.navigate(to) },
@@ -546,7 +546,7 @@ const table = new JsonTableComponent({ data: jsonString, columns, actionColumn }
 If your app wants one namespace-style entry point:
 
 ```ts
-import { myComponent } from "sort_component";
+import { myComponent } from "saas-ui-accelerator";
 
 const sorted = myComponent.SortData(rows, rules);
 const table = new myComponent.SortableTable({ data: jsonString, columns });
@@ -561,3 +561,4 @@ Compatibility aliases:
 - `myComponent.Sort` (same as `SortData`)
 - `myComponent.Table` (same as `SortableTable`)
 - `myComponet` (typo-compatible alias)
+

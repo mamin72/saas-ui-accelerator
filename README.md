@@ -1,4 +1,4 @@
-# sort_component
+# saas-ui-accelerator
 
 Reusable TypeScript sorting component library.
 
@@ -7,7 +7,7 @@ Reusable TypeScript sorting component library.
 The package now exposes a unified namespace so you can consume all kits from one import.
 
 ```ts
-import { component } from "sort_component";
+import { component } from "saas-ui-accelerator";
 
 const auth = component.authKit.createContext({
 	tenantId: "tenant-1",
@@ -40,7 +40,7 @@ Note: `component.auth-kit` is not valid JavaScript syntax. Use `component.authKi
 Progressive roadmap enablement:
 
 ```ts
-import { createEnabledComponent } from "sort_component";
+import { createEnabledComponent } from "saas-ui-accelerator";
 
 const runtime = createEnabledComponent({
 	enabledKits: ["data-grid-pro", "foundation-primitives"]
@@ -105,7 +105,7 @@ For every feature PR:
 
 ## Data Format Contract
 
-`sort_component` now supports modern input formats directly through built-in codecs.
+`saas-ui-accelerator` now supports modern input formats directly through built-in codecs.
 
 Supported formats:
 
@@ -119,7 +119,7 @@ Supported formats:
 You can still sort typed arrays directly with `sortByRules`, or use parse-and-sort APIs when the input is not already an array.
 
 ```ts
-import { parseAndSort, sortByRules } from "sort_component";
+import { parseAndSort, sortByRules } from "saas-ui-accelerator";
 
 // Direct array sorting
 const sortedArray = sortByRules(items, rules);
@@ -134,7 +134,7 @@ const sortedFromCsv = parseAndSort(csvText, {
 For stream inputs:
 
 ```ts
-import { parseAndSortFromStream } from "sort_component";
+import { parseAndSortFromStream } from "saas-ui-accelerator";
 
 const sorted = await parseAndSortFromStream(stream, {
 	format: "jsonl",
@@ -148,7 +148,7 @@ The package also includes a reusable table component model that accepts JSON and
 supports click-style header toggle sorting.
 
 ```ts
-import { JsonTableComponent, currencyPacks } from "sort_component";
+import { JsonTableComponent, currencyPacks } from "saas-ui-accelerator";
 
 const table = new JsonTableComponent({
 	data: jsonString,
@@ -362,7 +362,7 @@ import {
 	createColumnSchemaBuilder,
 	createTypedTableComponent,
 	defineTableColumns
-} from "sort_component";
+} from "saas-ui-accelerator";
 
 type UserRow = {
 	id: string;
@@ -389,7 +389,7 @@ const table = createTypedTableComponent({
 Starter template example:
 
 ```ts
-import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "sort_component";
+import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "saas-ui-accelerator";
 
 const tableTemplate = createTableStarterTemplate({
 	data: [{ id: 1, fullName: "Alice", active: true }],
@@ -440,7 +440,7 @@ Action column support:
 Permission-aware predicate example:
 
 ```ts
-import { andActionPredicates, requireAllPermissions, requirePermission } from "sort_component";
+import { andActionPredicates, requireAllPermissions, requirePermission } from "saas-ui-accelerator";
 
 const actionColumn = createDefaultMuiActionColumn({
 	router: { navigate: (to) => router.navigate(to) },
@@ -493,7 +493,7 @@ table.selectRowByKey("u1");
 Telemetry callbacks are observational and side-effect safe: callback failures are ignored.
 
 ```ts
-import { JsonTableComponent, createDefaultMuiActionColumn } from "sort_component";
+import { JsonTableComponent, createDefaultMuiActionColumn } from "saas-ui-accelerator";
 
 const actionColumn = createDefaultMuiActionColumn({
 	router: { navigate: (to) => router.navigate(to) },
@@ -512,7 +512,7 @@ const table = new JsonTableComponent({ data: jsonString, columns, actionColumn }
 If you prefer a single entry object, use `myComponent`:
 
 ```ts
-import { myComponent } from "sort_component";
+import { myComponent } from "saas-ui-accelerator";
 
 const sorted = myComponent.SortData(rows, rules);
 const table = new myComponent.SortableTable({ data: jsonString, columns });
@@ -571,9 +571,10 @@ The project includes versioned wiki content in the `wiki/` folder:
 Publish to GitHub wiki:
 
 1. Create one initial wiki page in GitHub UI (this initializes the wiki git backend):
-	- https://github.com/mamin72/sort_component/wiki
+	- https://github.com/mamin72/saas-ui-accelerator/wiki
 2. Run the publish script:
 
 ```powershell
 pwsh ./scripts/publish-wiki.ps1
 ```
+
