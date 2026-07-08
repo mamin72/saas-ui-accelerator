@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applyOptimisticCacheUpdate,
   commitOptimisticCacheUpdate,
+  createOfflineQueue,
   createInMemoryCacheAdapter,
   createQueryCacheKey,
   createQueryHookContract,
+  replayOfflineQueue,
   rollbackOptimisticCacheUpdate,
 } from '../src/index';
 
@@ -209,5 +211,115 @@ describe('query contracts', () => {
     );
 
     expect(committed.expiresAtEpochMs).toBe(3000);
+  });
+
+  it('supports offline queue ordering with enqueue/peek/dequeue semantics', () => {
+    const queue = createOfflineQueue<{ action: string }>({
+      nowEpochMs: () => 100,
+      idFactory: () => 'id-fixed',
+    });
+
+    queue.enqueue({ key: 'k1', payload: { action: 'first' } });
+    queue.enqueue({ key: 'k2', payload: { action: 'second' } });
+
+    expect(queue.size()).toBe(2);
+    expect(queue.peek()?.key).toBe('k1');
+    expect(queue.list().map((item) => item.key)).toEqual(['k1', 'k2']);
+
+    const first = queue.dequeue();
+    expect(first?.key).toBe('k1');
+    expect(queue.peek()?.key).toBe('k2');
+
+    queue.clear();
+    expect(queue.size()).toBe(0);
+  });
+
+  it('replays offline queue in order and reports processed counts', async () => {
+    const queue = createOfflineQueue<{ value: number }>({
+      nowEpochMs: () => 200,
+      idFactory: (() => {
+        let next = 0;
+        return () => `id-${next++}`;
+      })(),
+    });
+
+    queue.enqueue({ key: 'a', payload: { value: 1 } });
+    queue.enqueue({ key: 'b', payload: { value: 2 } });
+
+    const observed: string[] = [];
+
+    const result = await replayOfflineQueue({
+      queue,
+      process: (item) => {
+        observed.push(item.key);
+        return Promise.resolve();
+      },
+    });
+
+    expect(observed).toEqual(['a', 'b']);
+    expect(result).toEqual({ processed: 2, failed: 0, remaining: 0 });
+  });
+
+  it('requeues failed offline queue items with incremented attempts', async () => {
+    const queue = createOfflineQueue<{ value: number }>({
+      nowEpochMs: () => 300,
+      idFactory: (() => {
+        let next = 0;
+        return () => `retry-${next++}`;
+      })(),
+    });
+
+    queue.enqueue({ key: 'retry-key', payload: { value: 7 } });
+
+    const requeues: number[] = [];
+
+    const result = await replayOfflineQueue({
+      queue,
+      process: () => Promise.reject(new Error('offline')),
+      onRequeue: (item) => {
+        requeues.push(item.attempts);
+      },
+    });
+
+    expect(result.processed).toBe(0);
+    expect(result.failed).toBe(1);
+    expect(result.remaining).toBe(1);
+    expect(requeues).toEqual([1]);
+    expect(queue.peek()?.attempts).toBe(1);
+  });
+
+  it('supports default offline queue factory options', () => {
+    const queue = createOfflineQueue<{ ok: boolean }>();
+
+    const item = queue.enqueue({ key: 'default', payload: { ok: true } });
+
+    expect(item.id.length).toBeGreaterThan(0);
+    expect(item.attempts).toBe(0);
+    expect(item.enqueuedAtEpochMs).toBeGreaterThan(0);
+    expect(queue.peek()?.key).toBe('default');
+  });
+
+  it('handles defensive replay path when dequeue returns undefined', async () => {
+    const queue = {
+      enqueue: () => ({
+        id: 'x',
+        key: 'x',
+        payload: {},
+        enqueuedAtEpochMs: 0,
+        attempts: 0,
+      }),
+      peek: () => undefined,
+      dequeue: () => undefined,
+      size: () => 1,
+      clear: () => undefined,
+      list: () => [],
+    };
+
+    const result = await replayOfflineQueue({
+      queue,
+      process: () => Promise.resolve(),
+    });
+
+    expect(result).toEqual({ processed: 0, failed: 0, remaining: 1 });
   });
 });

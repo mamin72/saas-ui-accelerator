@@ -206,7 +206,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 25. [x] Phase 5/Foundation Track 1 completion gate: all chunk outputs integrated and validated.
 26. [x] Phase 5/Foundation Track 2 chunk 1: define query hook contracts and cache adapter interfaces.
 27. [x] Phase 5/Foundation Track 2 chunk 2: implement optimistic update and rollback primitives.
-28. [ ] Phase 5/Foundation Track 2 chunk 3: add offline-aware state sync and queueing patterns.
+28. [x] Phase 5/Foundation Track 2 chunk 3: add offline-aware state sync and queueing patterns.
 29. [ ] Phase 5/Foundation Track 2 chunk 4: add mutation lifecycle state primitives and events.
 30. [ ] Phase 5/Foundation Track 2 chunk 5: add tests, docs, and examples for data/state primitives.
 31. [ ] Phase 5/Foundation Track 2 completion gate: all chunk outputs integrated and validated.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 28: Phase 5/Foundation Track 2 chunk 3 - offline-aware state sync and queueing patterns.
+- Item 29: Phase 5/Foundation Track 2 chunk 4 - mutation lifecycle state primitives and events.
 - Scope for next implementation:
-- Add typed offline queue item model for deferred sync operations.
-- Add enqueue/dequeue/peek primitives and replay ordering guarantees.
-- Add tests for queue ordering and replay lifecycle behavior.
+- Add mutation lifecycle state model (idle, pending, committed, rolled-back, failed).
+- Add lifecycle event emitter hooks for optimistic apply, commit, rollback, and retry.
+- Add tests validating lifecycle transitions and event payload ordering.

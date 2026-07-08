@@ -77,6 +77,7 @@ runtime.component.dataGridPro;
 - Typed theme resolver utilities with fallback/strict modes (`resolveThemePack`, `createThemeResolver`)
 - Query hook contracts and cache adapter primitives (`createQueryHookContract`, `createQueryCacheKey`, `createInMemoryCacheAdapter`)
 - Optimistic update and rollback cache lifecycle primitives (`applyOptimisticCacheUpdate`, `commitOptimisticCacheUpdate`, `rollbackOptimisticCacheUpdate`)
+- Offline-aware queue and replay primitives (`createOfflineQueue`, `replayOfflineQueue`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -241,6 +242,24 @@ try {
 } catch {
   rollbackOptimisticCacheUpdate(cache, session);
 }
+```
+
+```ts
+import { createOfflineQueue, replayOfflineQueue } from "saas-ui-accelerator";
+
+const queue = createOfflineQueue<{ id: string }>({
+  nowEpochMs: () => Date.now()
+});
+
+queue.enqueue({ key: "users.sync", payload: { id: "u1" } });
+
+await replayOfflineQueue({
+  queue,
+  process: async (item) => {
+    // send queued mutation while online
+    void item;
+  }
+});
 ```
 
 ## Data Format Contract

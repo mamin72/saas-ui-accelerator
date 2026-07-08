@@ -51,6 +51,28 @@ export interface OptimisticUpdateSession<TValue = unknown> {
   optimisticEntry: CacheEntry<TValue>;
 }
 
+export interface OfflineQueueItem<TPayload = unknown> {
+  id: string;
+  key: string;
+  payload: TPayload;
+  enqueuedAtEpochMs: number;
+  attempts: number;
+}
+
+export interface OfflineQueue<TPayload = unknown> {
+  enqueue(
+    item: Omit<OfflineQueueItem<TPayload>, 'id' | 'enqueuedAtEpochMs' | 'attempts'> & {
+      attempts?: number;
+      enqueuedAtEpochMs?: number;
+    }
+  ): OfflineQueueItem<TPayload>;
+  peek(): OfflineQueueItem<TPayload> | undefined;
+  dequeue(): OfflineQueueItem<TPayload> | undefined;
+  size(): number;
+  clear(): void;
+  list(): readonly OfflineQueueItem<TPayload>[];
+}
+
 export function createInMemoryCacheAdapter<TValue = unknown>(): CacheAdapter<TValue> {
   const storage = new Map<string, CacheEntry<TValue>>();
 
@@ -169,6 +191,89 @@ export function rollbackOptimisticCacheUpdate<TValue>(
   }
 
   cache.delete(session.key);
+}
+
+export function createOfflineQueue<TPayload = unknown>(options?: {
+  nowEpochMs?: () => number;
+  idFactory?: () => string;
+}): OfflineQueue<TPayload> {
+  const nowEpochMs = options?.nowEpochMs ?? (() => Date.now());
+  const idFactory = options?.idFactory ?? (() => `${nowEpochMs()}-${Math.random().toString(36).slice(2, 8)}`);
+  const queue: OfflineQueueItem<TPayload>[] = [];
+
+  return {
+    enqueue(item): OfflineQueueItem<TPayload> {
+      const next: OfflineQueueItem<TPayload> = {
+        id: idFactory(),
+        key: item.key,
+        payload: item.payload,
+        enqueuedAtEpochMs: item.enqueuedAtEpochMs ?? nowEpochMs(),
+        attempts: item.attempts ?? 0,
+      };
+
+      queue.push(next);
+      return next;
+    },
+    peek(): OfflineQueueItem<TPayload> | undefined {
+      return queue[0];
+    },
+    dequeue(): OfflineQueueItem<TPayload> | undefined {
+      return queue.shift();
+    },
+    size(): number {
+      return queue.length;
+    },
+    clear(): void {
+      queue.length = 0;
+    },
+    list(): readonly OfflineQueueItem<TPayload>[] {
+      return [...queue];
+    },
+  };
+}
+
+export async function replayOfflineQueue<TPayload = unknown>(input: {
+  queue: OfflineQueue<TPayload>;
+  process: (item: OfflineQueueItem<TPayload>) => Promise<void>;
+  onRequeue?: (item: OfflineQueueItem<TPayload>, error: unknown) => void;
+}): Promise<{ processed: number; failed: number; remaining: number }> {
+  let processed = 0;
+  let failed = 0;
+  const initialQueueSize = input.queue.size();
+
+  for (let index = 0; index < initialQueueSize; index += 1) {
+    const item = input.queue.dequeue();
+    if (!item) {
+      break;
+    }
+
+    try {
+      await input.process(item);
+      processed += 1;
+    } catch (error) {
+      failed += 1;
+
+      const retryItem: OfflineQueueItem<TPayload> = {
+        ...item,
+        attempts: item.attempts + 1,
+      };
+
+      input.queue.enqueue({
+        key: retryItem.key,
+        payload: retryItem.payload,
+        attempts: retryItem.attempts,
+        enqueuedAtEpochMs: retryItem.enqueuedAtEpochMs,
+      });
+
+      input.onRequeue?.(retryItem, error);
+    }
+  }
+
+  return {
+    processed,
+    failed,
+    remaining: input.queue.size(),
+  };
 }
 
 function stableSerialize(value: unknown): string {
