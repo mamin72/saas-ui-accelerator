@@ -178,6 +178,76 @@ Selection helpers:
 - read helpers: `getSelectedRows`, `getSelectedFilteredRows`, `getSelectedPaginatedRows`, `getSelectionInfo`
 - clear helpers: `setSelectedRowKeys`, `clearSelection`
 
+## CSV Export
+
+Export the table state to CSV text with configurable scope and formatting.
+
+```ts
+const csvAll = table.exportCsv();
+const csvFiltered = table.exportCsv({ scope: "filtered" });
+const csvPaginated = table.exportCsv({ scope: "paginated", delimiter: ";" });
+const csvSelected = table.exportCsv({ scope: "selected", includeHeaders: false });
+```
+
+Options:
+
+- `scope`: `all`, `filtered`, `sorted`, `paginated`, `selected`
+- `delimiter`: single-character delimiter, defaults to `,`
+- `includeHeaders`: defaults to `true`
+- `includeHiddenColumns`: defaults to `false`
+
+Notes:
+
+- Visible columns are exported by default
+- Hidden columns can be included explicitly
+- Values are exported using table display formatting and CSV-safe escaping
+
+## Formatter Presets
+
+The package also exports reusable formatter preset helpers for common regional defaults.
+
+```ts
+import { currencyPacks, createDateFormatterPreset, createDateTimeFormatterPreset, timezonePacks } from "sort_component";
+
+const amountColumn = {
+  key: "amount",
+  header: "Amount",
+  ...currencyPacks.usd
+};
+
+const createdColumn = {
+  key: "createdUtc",
+  header: "Created",
+  dataType: "datetime",
+  ...createDateTimeFormatterPreset("UK", "long", { convertUtcToClientLocal: false })
+};
+```
+
+Helpers:
+
+- `currencyPacks`, `localePacks`, `timezonePacks`
+- `createCurrencyPreset(currencyCode, decimalPlaces?)`
+- `createDateFormatterPreset(dateLocale, dateLength?, options?)`
+- `createDateTimeFormatterPreset(dateLocale, dateLength?, options?)`
+- `createTimezonePreset(convertUtcToClientLocal)`
+
+## Validation Helpers
+
+Reusable validation helpers are exported for stricter input handling.
+
+```ts
+import { assertCsvDelimiter, assertCurrencyCode, assertSupportedFormat, assertTableColumnConfig, assertValidRowKeyValue } from "sort_component";
+```
+
+Helpers:
+
+- `assertCsvDelimiter(delimiter)`
+- `assertCurrencyCode(code)`
+- `assertTableColumnConfig(column)`
+- `assertValidRowKeyValue(rowKey, value)`
+- `assertSupportedFormat(format, supportedFormats)`
+
+
 ## Supported Column Data Types
 
 - `text`

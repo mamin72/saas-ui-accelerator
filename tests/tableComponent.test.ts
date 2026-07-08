@@ -325,8 +325,12 @@ describe('JsonTableComponent', () => {
   it('throws for invalid multi-sort column configuration', () => {
     const component = new JsonTableComponent({ data: rows, columns });
 
-    expect(() => component.setSortRules([{ columnKey: 'missing', direction: 'asc' }])).toThrow("Invalid sort column 'missing'.");
-    expect(() => component.appendSort('sortableFlag', 'asc')).toThrow("Column 'sortableFlag' is not sortable.");
+    expect(() => component.setSortRules([{ columnKey: 'missing', direction: 'asc' }])).toThrow(
+      "Unknown sort column 'missing'. Available columns: name, age, score, amount, createdUtc, active, sortableFlag."
+    );
+    expect(() => component.appendSort('sortableFlag', 'asc')).toThrow(
+      "Column 'sortableFlag' is not sortable. Sortable columns: name, age, score, amount, createdUtc, active."
+    );
   });
 
   it('keeps unsorted data order when sort column does not exist', () => {
@@ -596,9 +600,156 @@ describe('JsonTableComponent', () => {
     component.clearColumnVisibility();
     expect(component.getHeaders().some((header) => header.key === 'name')).toBe(true);
 
-    expect(() => component.setColumnVisibility('missing', false)).toThrow("Invalid column 'missing'.");
-    expect(() => component.setColumnVisibilityMap({ missing: false })).toThrow("Invalid column 'missing'.");
-    expect(() => component.toggleColumnVisibility('missing')).toThrow("Invalid column 'missing'.");
+    expect(() => component.setColumnVisibility('missing', false)).toThrow(
+      "Unknown column 'missing'. Available columns: name, age, score, amount, createdUtc, active, sortableFlag."
+    );
+    expect(() => component.setColumnVisibilityMap({ missing: false })).toThrow(
+      "Unknown column 'missing'. Available columns: name, age, score, amount, createdUtc, active, sortableFlag."
+    );
+    expect(() => component.toggleColumnVisibility('missing')).toThrow(
+      "Unknown column 'missing'. Available columns: name, age, score, amount, createdUtc, active, sortableFlag."
+    );
+  });
+
+  it('supports selecting rows by key and row object', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.selectRowByKey(0);
+    expect(component.getSelectedRowKeys()).toEqual([0]);
+    expect(component.getSelectedRows().map((x) => x.name)).toEqual(['Alice']);
+
+    const bob = component.getSortedRows().find((row) => row.name === 'bob');
+    if (bob == null) {
+      throw new Error('Expected bob row.');
+    }
+
+    component.selectRow(bob);
+    expect(component.getSelectedRows().map((x) => x.name)).toEqual(['Alice', 'bob']);
+
+    component.toggleRowSelectionByKey(0);
+    expect(component.getSelectedRowKeys()).toEqual([1]);
+    expect(component.isRowSelectedByKey(1)).toBe(true);
+    expect(component.isRowSelected(bob)).toBe(true);
+  });
+
+  it('supports select-all helpers and selection info', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    component.setFilters([{ columnKey: 'active', operator: 'isTrue' }]);
+    component.setPagination({ pageIndex: 0, pageSize: 1 });
+
+    component.selectAllFilteredRows();
+    expect(component.getSelectedFilteredRows().map((x) => x.name)).toEqual(['Alice']);
+    expect(component.getSelectionInfo().allFilteredSelected).toBe(true);
+
+    component.clearSelection();
+    component.selectAllPaginatedRows();
+    expect(component.getSelectedPaginatedRows().map((x) => x.name)).toEqual(['Alice']);
+    expect(component.getSelectionInfo().allPaginatedSelected).toBe(true);
+
+    component.clearSelection();
+    component.selectAllRows();
+    expect(component.getSelectedRows().length).toBe(2);
+  });
+
+  it('supports custom rowKey and validates unknown or duplicate row keys', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { id: 'u1', name: 'Alice' },
+        { id: 'u2', name: 'Bob' },
+      ],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+      rowKey: 'id',
+    });
+
+    component.setSelectedRowKeys(['u2']);
+    expect(component.getSelectedRows().map((x) => x.name)).toEqual(['Bob']);
+    expect(() => component.selectRowByKey('missing')).toThrow("Unknown row key 'missing'.");
+
+    expect(
+      () =>
+        new JsonTableComponent({
+          data: [
+            { id: 'dup', name: 'A' },
+            { id: 'dup', name: 'B' },
+          ],
+          columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+          rowKey: 'id',
+        })
+    ).toThrow('Duplicate row key');
+  });
+
+  it('executes bulk action handler with selected row context', async () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    component.selectRowByKey(0);
+
+    const result = await component.executeBulkAction((context) => ({
+      selected: context.selectedRows.map((x) => x.name),
+      selectedKeys: context.selectedRowKeys,
+      totalFiltered: context.filteredRows.length,
+      totalPaginated: context.paginatedRows.length,
+    }));
+
+    expect(result).toEqual({
+      selected: ['Alice'],
+      selectedKeys: [0],
+      totalFiltered: 2,
+      totalPaginated: 2,
+    });
+  });
+
+  it('exports visible columns by default and supports hidden column override', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+    component.setColumnVisibility('amount', false);
+
+    const csv = component.exportCsv();
+    expect(csv.split('\r\n')[0]).toBe('Name,Age,Score,Created,Active,Flag');
+    expect(csv).not.toContain('Amount');
+
+    const includeHidden = component.exportCsv({ includeHiddenColumns: true });
+    expect(includeHidden.split('\r\n')[0]).toBe('Name,Age,Score,Amount,Created,Active,Flag');
+  });
+
+  it('exports filtered, sorted, paginated, and selected scopes', () => {
+    const component = new JsonTableComponent({
+      data: [
+        { id: 1, name: 'Charlie', active: true },
+        { id: 2, name: 'Alice', active: true },
+        { id: 3, name: 'Bob', active: false },
+      ],
+      columns: [
+        { key: 'id', header: 'Id', dataType: 'number' },
+        { key: 'name', header: 'Name', dataType: 'text' },
+        { key: 'active', header: 'Active', dataType: 'boolean' },
+      ],
+      rowKey: 'id',
+    });
+
+    component.setFilters([{ columnKey: 'active', operator: 'isTrue' }]);
+    component.setSortRules([{ columnKey: 'name', direction: 'asc' }]);
+    component.setPagination({ pageIndex: 0, pageSize: 1 });
+    component.setSelectedRowKeys([2]);
+
+    expect(component.exportCsv({ scope: 'filtered' }).split('\r\n')[1]).toContain('Charlie');
+    expect(component.exportCsv({ scope: 'sorted' }).split('\r\n')[1]).toContain('Alice');
+    expect(component.exportCsv({ scope: 'paginated' }).split('\r\n')[1]).toContain('Alice');
+    expect(component.exportCsv({ scope: 'selected' }).split('\r\n')[1]).toContain('Alice');
+  });
+
+  it('supports delimiter and header options and escapes quoted values', () => {
+    const component = new JsonTableComponent({
+      data: [{ name: 'A,"B"', amount: 10 }],
+      columns: [
+        { key: 'name', header: 'Name', dataType: 'text' },
+        { key: 'amount', header: 'Amount', dataType: 'number' },
+      ],
+    });
+
+    const csv = component.exportCsv({ delimiter: ';', includeHeaders: false });
+    expect(csv).toBe('"A,""B""";10');
+
+    expect(() => component.exportCsv({ delimiter: ',,' })).toThrow(
+      "CSV delimiter must be exactly one character. Received ',,'."
+    );
   });
 
   it('supports selecting rows by key and row object', () => {
