@@ -228,66 +228,66 @@ Work strictly from top to bottom. Do not start the next item until the current i
 47. [ ] Phase 5/Foundation Track 5 chunk 4: implement locale-aware sort and filter utilities.
 48. [ ] Phase 5/Foundation Track 5 chunk 5: add tests, docs, and examples for localization primitives.
 49. [ ] Phase 5/Foundation Track 5 completion gate: all chunk outputs integrated and validated.
-50. [ ] Phase 6/Auth Kit chunk 1: sign-in and sign-up flows with typed form contracts.
-51. [ ] Phase 6/Auth Kit chunk 2: password recovery and magic-link authentication flows.
-52. [ ] Phase 6/Auth Kit chunk 3: social login adapters and multi-factor authentication components.
-53. [ ] Phase 6/Auth Kit chunk 4: session guard primitives for route and component protection.
-54. [ ] Phase 6/Auth Kit chunk 5: role, permission, and tenant-aware auth context helpers.
-55. [ ] Phase 6/Auth Kit release-ready gate: satisfy release-ready exit criteria.
-56. [ ] Phase 7/Billing Kit chunk 1: plan catalog and plan comparison components.
-57. [ ] Phase 7/Billing Kit chunk 2: checkout flow components and provider-agnostic payment adapters.
-58. [ ] Phase 7/Billing Kit chunk 3: customer portal launcher and billing account management actions.
-59. [ ] Phase 7/Billing Kit chunk 4: usage metering, invoice list, and billing history components.
-60. [ ] Phase 7/Billing Kit chunk 5: entitlement, trial, upgrade, and downgrade flow helpers.
-61. [ ] Phase 7/Billing Kit release-ready gate: satisfy release-ready exit criteria.
-62. [ ] Phase 8/Tenant and Org Kit chunk 1: organization and workspace switcher primitives.
-63. [ ] Phase 8/Tenant and Org Kit chunk 2: member invitation, acceptance, and lifecycle management flows.
-64. [ ] Phase 8/Tenant and Org Kit chunk 3: team role assignment and seat management components.
-65. [ ] Phase 8/Tenant and Org Kit chunk 4: workspace settings scaffolds with typed configuration models.
-66. [ ] Phase 8/Tenant and Org Kit chunk 5: tenant resolver and tenant-safe route guard helpers.
-67. [ ] Phase 8/Tenant and Org Kit release-ready gate: satisfy release-ready exit criteria.
-68. [ ] Phase 9/Data Grid Pro chunk 1: advanced filtering with composable rule groups and operators.
-69. [ ] Phase 9/Data Grid Pro chunk 2: faceted search and saved-view management components.
-70. [ ] Phase 9/Data Grid Pro chunk 3: server-side pagination, sorting, and filtering integration adapters.
-71. [ ] Phase 9/Data Grid Pro chunk 4: column pinning, visibility presets, and layout persistence.
-72. [ ] Phase 9/Data Grid Pro chunk 5: row selection, bulk actions, CSV export, and inline editing flows.
-73. [ ] Phase 9/Data Grid Pro release-ready gate: satisfy release-ready exit criteria.
-74. [ ] Phase 10/Forms and Validation Kit chunk 1: schema-driven form builder with typed field registries.
-75. [ ] Phase 10/Forms and Validation Kit chunk 2: synchronous and asynchronous validation pipelines.
-76. [ ] Phase 10/Forms and Validation Kit chunk 3: dependent and conditional field behavior helpers.
-77. [ ] Phase 10/Forms and Validation Kit chunk 4: autosave drafts and dirty-state navigation guard primitives.
-78. [ ] Phase 10/Forms and Validation Kit chunk 5: error summary patterns and resilient file upload with retry.
-79. [ ] Phase 10/Forms and Validation Kit release-ready gate: satisfy release-ready exit criteria.
-80. [ ] Phase 11/Workflow and Automation UI chunk 1: visual rule builder with typed condition and action nodes.
-81. [ ] Phase 11/Workflow and Automation UI chunk 2: trigger-action editor components for common automation patterns.
-82. [ ] Phase 11/Workflow and Automation UI chunk 3: cron scheduler UI with validation and timezone awareness.
-83. [ ] Phase 11/Workflow and Automation UI chunk 4: webhook tester and request inspector utilities.
-84. [ ] Phase 11/Workflow and Automation UI chunk 5: execution log viewer with retry and replay controls.
-85. [ ] Phase 11/Workflow and Automation UI release-ready gate: satisfy release-ready exit criteria.
-86. [ ] Phase 12/Analytics and Dashboard Kit chunk 1: KPI card components with trend and delta indicators.
-87. [ ] Phase 12/Analytics and Dashboard Kit chunk 2: time-series chart components with zoom and range controls.
-88. [ ] Phase 12/Analytics and Dashboard Kit chunk 3: cohort and funnel visualization primitives.
-89. [ ] Phase 12/Analytics and Dashboard Kit chunk 4: retention analysis components with configurable breakdowns.
-90. [ ] Phase 12/Analytics and Dashboard Kit chunk 5: configurable dashboard layouts with saved presets and sharing hooks.
-91. [ ] Phase 12/Analytics and Dashboard Kit release-ready gate: satisfy release-ready exit criteria.
-92. [ ] Phase 13/Notifications and Inbox Kit chunk 1: global toast system with severity, queueing, and dismissal policies.
-93. [ ] Phase 13/Notifications and Inbox Kit chunk 2: in-app notification center with grouping and filtering.
-94. [ ] Phase 13/Notifications and Inbox Kit chunk 3: notification template and delivery-channel configuration primitives.
-95. [ ] Phase 13/Notifications and Inbox Kit chunk 4: user preferences center for notification controls.
-96. [ ] Phase 13/Notifications and Inbox Kit chunk 5: unread counters and actionable notification interaction patterns.
-97. [ ] Phase 13/Notifications and Inbox Kit release-ready gate: satisfy release-ready exit criteria.
-98. [ ] Phase 14/Admin and Ops Console Kit chunk 1: feature flag management UI with environment targeting.
-99. [ ] Phase 14/Admin and Ops Console Kit chunk 2: user impersonation flow indicators and safety controls.
-100. [ ] Phase 14/Admin and Ops Console Kit chunk 3: audit timeline components with actor and event filtering.
-101. [ ] Phase 14/Admin and Ops Console Kit chunk 4: system health and diagnostics panel primitives.
-102. [ ] Phase 14/Admin and Ops Console Kit chunk 5: support tooling and API key management components.
-103. [ ] Phase 14/Admin and Ops Console Kit release-ready gate: satisfy release-ready exit criteria.
-104. [ ] Phase 15/Onboarding and Adoption Kit chunk 1: guided tour framework with step orchestration.
-105. [ ] Phase 15/Onboarding and Adoption Kit chunk 2: onboarding checklist widget with progress persistence.
-106. [ ] Phase 15/Onboarding and Adoption Kit chunk 3: reusable empty-state templates with contextual actions.
-107. [ ] Phase 15/Onboarding and Adoption Kit chunk 4: contextual help panel and in-product support prompts.
-108. [ ] Phase 15/Onboarding and Adoption Kit chunk 5: feedback, NPS, and CSAT collection components.
-109. [ ] Phase 15/Onboarding and Adoption Kit release-ready gate: satisfy release-ready exit criteria.
+50. [ ] Phase 6/Auth Kit chunk 1: define sign-in/sign-up form schemas, typed submission contracts, and validation/error mapping helpers.
+51. [ ] Phase 6/Auth Kit chunk 2: implement password recovery and magic-link workflows with token lifecycle, expiry handling, and typed callbacks.
+52. [ ] Phase 6/Auth Kit chunk 3: add social login adapter contracts and MFA challenge primitives with pluggable provider interfaces.
+53. [ ] Phase 6/Auth Kit chunk 4: implement route/component session guards with unauthenticated fallback and revalidation behavior.
+54. [ ] Phase 6/Auth Kit chunk 5: add role/permission evaluators and tenant-aware auth context composition utilities.
+55. [ ] Phase 6/Auth Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+56. [ ] Phase 7/Billing Kit chunk 1: define typed plan catalog models, comparison metadata, and pricing presentation helpers.
+57. [ ] Phase 7/Billing Kit chunk 2: implement checkout flow contracts and provider-agnostic payment adapter interfaces with lifecycle events.
+58. [ ] Phase 7/Billing Kit chunk 3: add customer portal launcher contracts and billing account action primitives with capability checks.
+59. [ ] Phase 7/Billing Kit chunk 4: implement usage metering records, invoice list models, and billing history query helpers.
+60. [ ] Phase 7/Billing Kit chunk 5: add entitlement and trial-state evaluators plus typed upgrade/downgrade transition helpers.
+61. [ ] Phase 7/Billing Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+62. [ ] Phase 8/Tenant and Org Kit chunk 1: implement organization/workspace switcher contracts, selectors, and active-context state helpers.
+63. [ ] Phase 8/Tenant and Org Kit chunk 2: define invite lifecycle contracts and acceptance/revocation flow primitives with status tracking.
+64. [ ] Phase 8/Tenant and Org Kit chunk 3: add team role assignment and seat allocation/reclamation primitives with policy validation.
+65. [ ] Phase 8/Tenant and Org Kit chunk 4: implement workspace settings scaffold models, typed config registries, and serialization helpers.
+66. [ ] Phase 8/Tenant and Org Kit chunk 5: add tenant resolver strategies and tenant-safe route guard evaluation utilities.
+67. [ ] Phase 8/Tenant and Org Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+68. [ ] Phase 9/Data Grid Pro chunk 1: implement advanced filter rule-group contracts, operator registries, and composition/evaluation helpers.
+69. [ ] Phase 9/Data Grid Pro chunk 2: add faceted-search state primitives and saved-view CRUD contracts with persistence adapters.
+70. [ ] Phase 9/Data Grid Pro chunk 3: implement server-side pagination/sort/filter request builders and response normalization adapters.
+71. [ ] Phase 9/Data Grid Pro chunk 4: add column pinning/visibility preset contracts and layout persistence serialization helpers.
+72. [ ] Phase 9/Data Grid Pro chunk 5: implement row selection + bulk-action orchestration with CSV export and inline-edit state guards.
+73. [ ] Phase 9/Data Grid Pro release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+74. [ ] Phase 10/Forms and Validation Kit chunk 1: implement schema-driven form contracts, typed field registries, and field-render mapping helpers.
+75. [ ] Phase 10/Forms and Validation Kit chunk 2: add sync/async validation pipeline primitives with typed error aggregation strategies.
+76. [ ] Phase 10/Forms and Validation Kit chunk 3: implement dependent-field condition contracts and reactive recalculation helpers.
+77. [ ] Phase 10/Forms and Validation Kit chunk 4: add autosave draft lifecycle primitives and dirty-state navigation guard evaluators.
+78. [ ] Phase 10/Forms and Validation Kit chunk 5: implement error summary models and resilient file-upload retry orchestration helpers.
+79. [ ] Phase 10/Forms and Validation Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+80. [ ] Phase 11/Workflow and Automation UI chunk 1: define visual rule-builder node/edge contracts and typed condition/action registries.
+81. [ ] Phase 11/Workflow and Automation UI chunk 2: implement trigger-action editor state models and reusable pattern composition helpers.
+82. [ ] Phase 11/Workflow and Automation UI chunk 3: add cron scheduler parsing/validation primitives with timezone-safe schedule helpers.
+83. [ ] Phase 11/Workflow and Automation UI chunk 4: implement webhook tester request/response contracts and inspector normalization utilities.
+84. [ ] Phase 11/Workflow and Automation UI chunk 5: add execution log models with retry/replay command primitives and status evaluators.
+85. [ ] Phase 11/Workflow and Automation UI release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+86. [ ] Phase 12/Analytics and Dashboard Kit chunk 1: define KPI card contracts, trend/delta semantics, and formatter-ready metric models.
+87. [ ] Phase 12/Analytics and Dashboard Kit chunk 2: implement time-series dataset contracts and zoom/range state coordination helpers.
+88. [ ] Phase 12/Analytics and Dashboard Kit chunk 3: add typed cohort/funnel data-shape adapters and visualization input normalization utilities.
+89. [ ] Phase 12/Analytics and Dashboard Kit chunk 4: implement retention breakdown contracts with segmentation and comparison helpers.
+90. [ ] Phase 12/Analytics and Dashboard Kit chunk 5: add dashboard layout persistence contracts with saved preset/share-link primitives.
+91. [ ] Phase 12/Analytics and Dashboard Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+92. [ ] Phase 13/Notifications and Inbox Kit chunk 1: implement global toast contracts for severity, queue policy, dedupe, and dismissal behavior.
+93. [ ] Phase 13/Notifications and Inbox Kit chunk 2: add notification-center grouping/filter state contracts and list virtualization helpers.
+94. [ ] Phase 13/Notifications and Inbox Kit chunk 3: define template/channel configuration models and delivery routing adapter contracts.
+95. [ ] Phase 13/Notifications and Inbox Kit chunk 4: implement user preference schemas and channel-level opt-in/opt-out evaluator helpers.
+96. [ ] Phase 13/Notifications and Inbox Kit chunk 5: add unread-counter derivation and actionable interaction lifecycle primitives.
+97. [ ] Phase 13/Notifications and Inbox Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+98. [ ] Phase 14/Admin and Ops Console Kit chunk 1: define feature-flag targeting contracts and environment-scoped configuration helpers.
+99. [ ] Phase 14/Admin and Ops Console Kit chunk 2: implement impersonation session indicator contracts and guardrail/safety policy evaluators.
+100. [ ] Phase 14/Admin and Ops Console Kit chunk 3: add audit timeline event contracts and actor/event filter composition helpers.
+101. [ ] Phase 14/Admin and Ops Console Kit chunk 4: implement system health panel contracts with diagnostics status aggregation primitives.
+102. [ ] Phase 14/Admin and Ops Console Kit chunk 5: add support tooling and API key lifecycle helpers including rotation/revocation contracts.
+103. [ ] Phase 14/Admin and Ops Console Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+104. [ ] Phase 15/Onboarding and Adoption Kit chunk 1: define guided-tour step contracts and orchestration lifecycle helpers.
+105. [ ] Phase 15/Onboarding and Adoption Kit chunk 2: implement checklist progress-state contracts with persistence and completion evaluators.
+106. [ ] Phase 15/Onboarding and Adoption Kit chunk 3: add reusable empty-state template contracts and contextual action mapping helpers.
+107. [ ] Phase 15/Onboarding and Adoption Kit chunk 4: implement contextual help panel contracts and in-product support prompt orchestration helpers.
+108. [ ] Phase 15/Onboarding and Adoption Kit chunk 5: add feedback, NPS, and CSAT collection contracts with typed scoring/analytics payload helpers.
+109. [ ] Phase 15/Onboarding and Adoption Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
 
 ## Phase-to-Backlog Mapping
 
