@@ -79,6 +79,7 @@ runtime.component.dataGridPro;
 - Optimistic update and rollback cache lifecycle primitives (`applyOptimisticCacheUpdate`, `commitOptimisticCacheUpdate`, `rollbackOptimisticCacheUpdate`)
 - Offline-aware queue and replay primitives (`createOfflineQueue`, `replayOfflineQueue`)
 - Mutation lifecycle state and event primitives (`createMutationLifecycle`)
+- Page-level access control contracts with decision metadata (`createPageAccessContract`, `evaluatePageAccess`, `createPageAccessEvaluator`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -319,6 +320,38 @@ await replayOfflineQueue({
     lifecycle.rollback("offline");
     lifecycle.retry();
   }
+});
+```
+
+## Page Access Contracts
+
+```ts
+import {
+  createPageAccessContract,
+  createPageAccessEvaluator,
+  evaluatePageAccess
+} from "saas-ui-accelerator";
+
+const usersPage = createPageAccessContract({
+  pageKey: "users.settings",
+  requiredRoles: ["admin"],
+  requiredPermissions: ["users:write"],
+  allowedTenants: ["tenant-a"]
+});
+
+const result = evaluatePageAccess(usersPage, {
+  userId: "u1",
+  roles: ["admin"],
+  permissions: ["users:read", "users:write"],
+  tenantId: "tenant-a"
+});
+
+const evaluator = createPageAccessEvaluator([usersPage]);
+const pageDecision = evaluator.evaluate("users.settings", {
+  userId: "u2",
+  roles: ["support"],
+  permissions: ["users:read"],
+  tenantId: "tenant-a"
 });
 ```
 

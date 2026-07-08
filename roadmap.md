@@ -210,7 +210,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 29. [x] Phase 5/Foundation Track 2 chunk 4: add mutation lifecycle state primitives and events.
 30. [x] Phase 5/Foundation Track 2 chunk 5: add tests, docs, and examples for data/state primitives.
 31. [x] Phase 5/Foundation Track 2 completion gate: all chunk outputs integrated and validated.
-32. [ ] Phase 5/Foundation Track 3 chunk 1: define page-level access control contracts.
+32. [x] Phase 5/Foundation Track 3 chunk 1: define page-level access control contracts.
 33. [ ] Phase 5/Foundation Track 3 chunk 2: define component and action-level policy primitives.
 34. [ ] Phase 5/Foundation Track 3 chunk 3: implement field-level guard utilities with typed conditions.
 35. [ ] Phase 5/Foundation Track 3 chunk 4: integrate tenant scoping and policy evaluation helpers.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 32: Phase 5/Foundation Track 3 chunk 1 - define page-level access control contracts.
+- Item 33: Phase 5/Foundation Track 3 chunk 2 - define component and action-level policy primitives.
 - Scope for next implementation:
-- Define typed page access contract inputs and evaluation results.
-- Add helpers for evaluating allow/deny access outcomes with reason metadata.
-- Add tests and README usage examples for page-level access checks.
+- Define typed component-level policy contracts and action-level guard models.
+- Add composition helpers for combining policy predicates and guard outcomes.
+- Add tests and README examples for component/action policy enforcement.

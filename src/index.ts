@@ -6,6 +6,7 @@ export * from './formatterPresets';
 export * from './serverModeAdapters';
 export * from './starterTemplates';
 export * from './validation';
+export * from './pageAccessContracts';
 export * from './tokenSchema';
 export * from './themePacks';
 export * from './queryContracts';
