@@ -71,6 +71,7 @@ runtime.component.dataGridPro;
 - CSV export utility (`exportCsv` with all/filtered/sorted/paginated/selected scopes)
 - Formatter preset helpers (`currencyPacks`, `localePacks`, `timezonePacks`, `createCurrencyPreset`, `createDateFormatterPreset`, `createDateTimeFormatterPreset`, `createTimezonePreset`)
 - Validation helpers for column configs, row keys, delimiter checks, and supported format errors
+- Foundation token schema helpers for semantic aliases and naming conventions (`createTokenSchema`, `resolveTokenName`, `getTokenValue`, `validateTokenName`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -104,6 +105,32 @@ For every feature PR:
 1. Add newly shipped capabilities to `Available Now`.
 2. Remove completed items from `Planned (Future)` and keep them in `roadmap.md` as delivered milestones.
 3. Keep examples and API references aligned with the current release state.
+
+## Foundation Token Schema
+
+Use token schema helpers to define canonical design tokens, semantic aliases, and naming rules.
+
+```ts
+import { createTokenSchema, getTokenValue, resolveTokenName } from "saas-ui-accelerator";
+
+const tokenSchema = createTokenSchema({
+  tokens: {
+    "color.brand.primary": "#0055ff",
+    "color.surface.canvas": "#ffffff",
+    "space.scale.200": 8
+  },
+  semanticAliases: {
+    "color.action.primary.background": "color.brand.primary",
+    "color.page.background": "color.surface.canvas"
+  },
+  namingConvention: {
+    allowedPrefixes: ["color", "space"]
+  }
+});
+
+const resolved = resolveTokenName(tokenSchema, "color.action.primary.background");
+const value = getTokenValue(tokenSchema, "color.page.background");
+```
 
 ## Data Format Contract
 

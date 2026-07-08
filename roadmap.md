@@ -198,7 +198,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 17. [x] Add compatibility test matrix across Node versions.
 18. [x] Add release automation with changelog and version policy enforcement.
 19. [x] Add migration guide framework for future major versions.
-20. [ ] Phase 5/Foundation Track 1 chunk 1: define token schema, semantic aliases, and naming conventions.
+20. [x] Phase 5/Foundation Track 1 chunk 1: define token schema, semantic aliases, and naming conventions.
 21. [ ] Phase 5/Foundation Track 1 chunk 2: implement baseline theme packs (light, dark, high-contrast).
 22. [ ] Phase 5/Foundation Track 1 chunk 3: implement density modes and RTL-safe token mapping.
 23. [ ] Phase 5/Foundation Track 1 chunk 4: add typed theme resolver utilities and fallback behavior.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 20: Phase 5/Foundation Track 1 chunk 1 - token schema and semantic aliases.
+- Item 21: Phase 5/Foundation Track 1 chunk 2 - baseline theme packs.
 - Scope for next implementation:
-- Define token schema and semantic alias model.
-- Add baseline theme packs (light, dark, high-contrast) and density modes.
-- Add typed theme resolver utilities and unit tests.
+- Add baseline theme packs (light, dark, high-contrast).
+- Ensure theme packs align with chunk-1 token schema and naming conventions.
+- Add tests for theme-pack token coverage and alias consistency.
