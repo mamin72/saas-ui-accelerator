@@ -81,6 +81,7 @@ runtime.component.dataGridPro;
 - Mutation lifecycle state and event primitives (`createMutationLifecycle`)
 - Page-level access control contracts with decision metadata (`createPageAccessContract`, `evaluatePageAccess`, `createPageAccessEvaluator`)
 - Component and action-level access policy primitives (`createComponentAccessPolicy`, `evaluateComponentAccess`, `createComponentAccessEvaluator`, `createActionAccessPolicy`, `evaluateActionAccess`, `createActionAccessEvaluator`)
+- Field-level guard utilities with typed conditions (`createFieldAccessPolicy`, `evaluateFieldAccess`, `createFieldAccessEvaluator`, `fieldEquals`, `fieldNotEquals`, `fieldIn`, `fieldNotIn`, `fieldIsTrue`, `fieldIsFalse`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)

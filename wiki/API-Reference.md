@@ -171,3 +171,57 @@ createActionAccessEvaluator(policies: readonly ActionAccessPolicy[]): {
 ```
 
 Builds a keyed evaluator for action policy checks across components.
+
+## createFieldAccessPolicy
+
+```ts
+createFieldAccessPolicy<TRecord extends Record<string, unknown>, TField extends FieldKeyOf<TRecord>>(input: {
+  fieldKey: TField;
+  mode?: "read" | "write";
+  requiredRoles?: readonly string[];
+  requiredPermissions?: readonly string[];
+  requireAllPermissions?: boolean;
+  denyWhenUnauthenticated?: boolean;
+  conditions?: readonly FieldAccessCondition<TRecord>[];
+}): FieldAccessPolicy<TRecord, TField>
+```
+
+Creates a normalized field access policy with typed conditions and permission requirements.
+
+## evaluateFieldAccess
+
+```ts
+evaluateFieldAccess<TRecord extends Record<string, unknown>>(
+  policy: FieldAccessPolicy<TRecord>,
+  context?: FieldAccessContext<TRecord>
+): FieldAccessResult<TRecord>
+```
+
+Evaluates field-level access and returns decision metadata with failed condition details.
+
+## createFieldAccessEvaluator
+
+```ts
+createFieldAccessEvaluator<TRecord extends Record<string, unknown>>(
+  policies: readonly FieldAccessPolicy<TRecord>[]
+): {
+  evaluate(fieldKey: FieldKeyOf<TRecord> | string | number, mode?: "read" | "write", context?: FieldAccessContext<TRecord>): FieldAccessResult<TRecord>;
+  hasField(fieldKey: FieldKeyOf<TRecord> | string | number, mode?: "read" | "write"): boolean;
+  listFields(mode?: "read" | "write"): readonly string[];
+}
+```
+
+Builds a keyed evaluator for field policy checks across read and write modes.
+
+## Typed Field Condition Helpers
+
+```ts
+fieldEquals(field, value)
+fieldNotEquals(field, value)
+fieldIn(field, value[])
+fieldNotIn(field, value[])
+fieldIsTrue(field)
+fieldIsFalse(field)
+```
+
+Typed helper constructors for composing field-level access conditions.
