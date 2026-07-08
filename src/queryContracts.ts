@@ -45,6 +45,12 @@ export interface CacheAdapter<TValue = unknown> {
   keys(): readonly string[];
 }
 
+export interface OptimisticUpdateSession<TValue = unknown> {
+  key: string;
+  previousEntry?: CacheEntry<TValue>;
+  optimisticEntry: CacheEntry<TValue>;
+}
+
 export function createInMemoryCacheAdapter<TValue = unknown>(): CacheAdapter<TValue> {
   const storage = new Map<string, CacheEntry<TValue>>();
 
@@ -105,6 +111,64 @@ export function createQueryHookContract<TParams, TData, TError = unknown>(input:
     run: input.run,
     createInitialState: input.createInitialState ?? (() => ({ status: 'idle' })),
   };
+}
+
+export function applyOptimisticCacheUpdate<TValue>(
+  cache: CacheAdapter<TValue>,
+  key: string,
+  optimisticValue: TValue,
+  options?: {
+    optimisticExpiresAtEpochMs?: number;
+    nowEpochMs?: number;
+  }
+): OptimisticUpdateSession<TValue> {
+  const previousEntry = cache.get(key);
+  const createdAtEpochMs = options?.nowEpochMs ?? Date.now();
+
+  const optimisticEntry: CacheEntry<TValue> = {
+    value: optimisticValue,
+    createdAtEpochMs,
+    expiresAtEpochMs: options?.optimisticExpiresAtEpochMs,
+  };
+
+  cache.set(key, optimisticEntry);
+
+  return {
+    key,
+    previousEntry,
+    optimisticEntry,
+  };
+}
+
+export function commitOptimisticCacheUpdate<TValue>(
+  cache: CacheAdapter<TValue>,
+  session: OptimisticUpdateSession<TValue>,
+  committedValue: TValue,
+  options?: {
+    committedExpiresAtEpochMs?: number;
+    nowEpochMs?: number;
+  }
+): CacheEntry<TValue> {
+  const committedEntry: CacheEntry<TValue> = {
+    value: committedValue,
+    createdAtEpochMs: options?.nowEpochMs ?? Date.now(),
+    expiresAtEpochMs: options?.committedExpiresAtEpochMs,
+  };
+
+  cache.set(session.key, committedEntry);
+  return committedEntry;
+}
+
+export function rollbackOptimisticCacheUpdate<TValue>(
+  cache: CacheAdapter<TValue>,
+  session: OptimisticUpdateSession<TValue>
+): void {
+  if (session.previousEntry) {
+    cache.set(session.key, session.previousEntry);
+    return;
+  }
+
+  cache.delete(session.key);
 }
 
 function stableSerialize(value: unknown): string {

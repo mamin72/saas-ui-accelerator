@@ -76,6 +76,7 @@ runtime.component.dataGridPro;
 - Density mode and RTL-safe token utilities (`resolveDensityModeTokens`, `resolveDirectionalTokenName`, `createDirectionalTokenPair`)
 - Typed theme resolver utilities with fallback/strict modes (`resolveThemePack`, `createThemeResolver`)
 - Query hook contracts and cache adapter primitives (`createQueryHookContract`, `createQueryCacheKey`, `createInMemoryCacheAdapter`)
+- Optimistic update and rollback cache lifecycle primitives (`applyOptimisticCacheUpdate`, `commitOptimisticCacheUpdate`, `rollbackOptimisticCacheUpdate`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -221,6 +222,25 @@ const usersContract = createQueryHookContract<{ page: number }, Array<{ id: stri
 });
 
 cache.set(key, { value: await usersContract.run({ key, params: { page: 1 } }), createdAtEpochMs: Date.now() });
+```
+
+```ts
+import {
+  applyOptimisticCacheUpdate,
+  commitOptimisticCacheUpdate,
+  rollbackOptimisticCacheUpdate,
+  createInMemoryCacheAdapter
+} from "saas-ui-accelerator";
+
+const cache = createInMemoryCacheAdapter<{ status: string }>();
+
+const session = applyOptimisticCacheUpdate(cache, "user:1", { status: "saving" });
+
+try {
+  commitOptimisticCacheUpdate(cache, session, { status: "saved" });
+} catch {
+  rollbackOptimisticCacheUpdate(cache, session);
+}
 ```
 
 ## Data Format Contract

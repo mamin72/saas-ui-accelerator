@@ -1,8 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  applyOptimisticCacheUpdate,
+  commitOptimisticCacheUpdate,
   createInMemoryCacheAdapter,
   createQueryCacheKey,
   createQueryHookContract,
+  rollbackOptimisticCacheUpdate,
 } from '../src/index';
 
 describe('query contracts', () => {
@@ -123,5 +126,88 @@ describe('query contracts', () => {
           }),
       })
     ).toThrow('Query hook contract key must be non-empty.');
+  });
+
+  it('applies and commits optimistic cache updates', () => {
+    const cache = createInMemoryCacheAdapter<{ count: number }>();
+
+    cache.set('counter', {
+      value: { count: 1 },
+      createdAtEpochMs: 10,
+    });
+
+    const session = applyOptimisticCacheUpdate(cache, 'counter', { count: 2 }, { nowEpochMs: 20 });
+
+    expect(session.previousEntry?.value).toEqual({ count: 1 });
+    expect(cache.get('counter')?.value).toEqual({ count: 2 });
+
+    const committed = commitOptimisticCacheUpdate(cache, session, { count: 3 }, { nowEpochMs: 30 });
+
+    expect(committed.value).toEqual({ count: 3 });
+    expect(cache.get('counter')?.value).toEqual({ count: 3 });
+  });
+
+  it('rolls back optimistic updates to previous cache snapshots', () => {
+    const cache = createInMemoryCacheAdapter<{ status: string }>();
+
+    cache.set('mutation', {
+      value: { status: 'original' },
+      createdAtEpochMs: 100,
+    });
+
+    const session = applyOptimisticCacheUpdate(cache, 'mutation', { status: 'optimistic' }, { nowEpochMs: 110 });
+    expect(cache.get('mutation')?.value).toEqual({ status: 'optimistic' });
+
+    rollbackOptimisticCacheUpdate(cache, session);
+    expect(cache.get('mutation')?.value).toEqual({ status: 'original' });
+  });
+
+  it('deletes cache entries on rollback when no previous snapshot exists', () => {
+    const cache = createInMemoryCacheAdapter<{ status: string }>();
+
+    const session = applyOptimisticCacheUpdate(cache, 'new-mutation', { status: 'optimistic' }, { nowEpochMs: 1 });
+    expect(cache.has('new-mutation')).toBe(true);
+
+    rollbackOptimisticCacheUpdate(cache, session);
+    expect(cache.has('new-mutation')).toBe(false);
+  });
+
+  it('uses Date.now defaults when optimistic lifecycle options are omitted', () => {
+    const cache = createInMemoryCacheAdapter<{ status: string }>();
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(777);
+
+    try {
+      const session = applyOptimisticCacheUpdate(cache, 'default-clock', { status: 'optimistic' });
+      expect(session.optimisticEntry.createdAtEpochMs).toBe(777);
+      expect(session.optimisticEntry.expiresAtEpochMs).toBeUndefined();
+
+      const committed = commitOptimisticCacheUpdate(cache, session, { status: 'committed' });
+      expect(committed.createdAtEpochMs).toBe(777);
+      expect(committed.expiresAtEpochMs).toBeUndefined();
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('supports explicit expiry configuration for optimistic and committed entries', () => {
+    const cache = createInMemoryCacheAdapter<{ status: string }>();
+
+    const session = applyOptimisticCacheUpdate(
+      cache,
+      'expiring',
+      { status: 'optimistic' },
+      { nowEpochMs: 1000, optimisticExpiresAtEpochMs: 2000 }
+    );
+
+    expect(session.optimisticEntry.expiresAtEpochMs).toBe(2000);
+
+    const committed = commitOptimisticCacheUpdate(
+      cache,
+      session,
+      { status: 'committed' },
+      { nowEpochMs: 1100, committedExpiresAtEpochMs: 3000 }
+    );
+
+    expect(committed.expiresAtEpochMs).toBe(3000);
   });
 });
