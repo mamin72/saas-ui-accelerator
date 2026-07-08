@@ -1,6 +1,7 @@
 /* c8 ignore start */
 import { parseRecords } from './formatSupport';
 import { sortByRules } from './sortByRules';
+import { assertCsvDelimiter, assertTableColumnConfig, assertValidRowKeyValue } from './validation';
 
 export type TableDataType = 'text' | 'number' | 'decimal' | 'currency' | 'date' | 'datetime' | 'boolean';
 export type DateLocaleStyle = 'US' | 'UK' | 'Chinese';
@@ -105,6 +106,14 @@ export interface TablePaginationState {
 
 export type TableColumnVisibilityState = Readonly<Record<string, boolean>>;
 export type TableRowKey = string | number;
+export type TableCsvExportScope = 'all' | 'filtered' | 'sorted' | 'paginated' | 'selected';
+
+export interface TableCsvExportOptions {
+  readonly scope?: TableCsvExportScope;
+  readonly delimiter?: string;
+  readonly includeHeaders?: boolean;
+  readonly includeHiddenColumns?: boolean;
+}
 
 export interface TableSelectionInfo {
   readonly selectedCount: number;
@@ -396,6 +405,30 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     };
 
     return Promise.resolve(handler(context));
+  }
+
+  public exportCsv(options: TableCsvExportOptions = {}): string {
+    const scope = options.scope ?? 'all';
+    const delimiter = options.delimiter ?? ',';
+    const includeHeaders = options.includeHeaders ?? true;
+    const includeHiddenColumns = options.includeHiddenColumns ?? false;
+
+    assertCsvDelimiter(delimiter);
+
+    const columns = includeHiddenColumns ? [...this.columns] : this.getVisibleColumns();
+    const rows = this.getCsvRowsForScope(scope);
+
+    const lines: string[] = [];
+    if (includeHeaders) {
+      lines.push(columns.map((column) => this.escapeCsvValue(column.header, delimiter)).join(delimiter));
+    }
+
+    for (const row of rows) {
+      const values = columns.map((column) => this.escapeCsvValue(this.getCsvCellValue(row, column), delimiter));
+      lines.push(values.join(delimiter));
+    }
+
+    return lines.join('\r\n');
   }
 
   public getColumnVisibility(): TableColumnVisibilityState {
@@ -736,12 +769,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     }
 
     return (row: T) => {
-      const value = row[rowKey];
-      if (typeof value === 'string' || typeof value === 'number') {
-        return value;
-      }
-
-      throw new Error(`Invalid row key value for '${rowKey}'. Row key must resolve to string or number.`);
+      return assertValidRowKeyValue(rowKey, row[rowKey]);
     };
   }
 
@@ -749,7 +777,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.rows.forEach((row, index) => {
       const token = this.getRowToken(row, index);
       if (this.rowKeyTokenToRow.has(token)) {
-        throw new Error(`Duplicate row key '${token}' detected. Row keys must be unique.`);
+        throw new Error(`Duplicate row key '${token}' detected at row index ${index}. Row keys must be unique.`);
       }
 
       this.rowKeyTokenToRow.set(token, row);
@@ -792,43 +820,10 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
   private normalizeColumns(columns: readonly TableColumn<T>[]): readonly TableColumn<T>[] {
     for (const column of columns) {
-      if (column.dataType === 'currency') {
-        const currency = column.currencyCode ?? 'USD';
-        this.assertCurrencyCode(currency);
-      }
+      assertTableColumnConfig(column);
     }
 
     return [...columns];
-  }
-
-  private assertCurrencyCode(code: string): void {
-    const normalized = code.toUpperCase();
-
-    const intlWithSupportedValues = Intl as Intl.DateTimeFormatOptions & {
-      supportedValuesOf?: (key: string) => string[];
-    };
-
-    if (typeof intlWithSupportedValues.supportedValuesOf === 'function') {
-      const supported = intlWithSupportedValues.supportedValuesOf('currency');
-      if (!supported.includes(normalized)) {
-        throw new Error(`Invalid currency code '${code}'. Use a valid ISO 4217 code.`);
-      }
-      return;
-    }
-
-    try {
-      const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: normalized,
-      });
-      formatter.format(1);
-
-      if (!/^[A-Z]{3}$/.test(normalized)) {
-        throw new Error('Invalid ISO currency code pattern.');
-      }
-    } catch {
-      throw new Error(`Invalid currency code '${code}'. Use a valid ISO 4217 code.`);
-    }
   }
 
   private getDefaultColumnVisibility(): Record<string, boolean> {
@@ -842,10 +837,42 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     return this.columns.filter((column) => this.columnVisibilityState[column.key] !== false);
   }
 
+  private getCsvRowsForScope(scope: TableCsvExportScope): readonly T[] {
+    switch (scope) {
+      case 'all':
+        return [...this.rows];
+      case 'filtered':
+        return this.getFilteredRows();
+      case 'sorted':
+        return this.getSortedRows();
+      case 'paginated':
+        return this.getPaginatedRows();
+      case 'selected':
+        return this.getSelectedRows();
+      default:
+        return [...this.rows];
+    }
+  }
+
+  private getCsvCellValue(row: T, column: TableColumn<T>): string {
+    const rawValue = this.getColumnValue(row, column);
+    return this.formatValue(rawValue, column);
+  }
+
+  private escapeCsvValue(value: string, delimiter: string): string {
+    const needsQuotes = value.includes('"') || value.includes('\n') || value.includes('\r') || value.includes(delimiter);
+    if (!needsQuotes) {
+      return value;
+    }
+
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+
   private assertKnownColumn(columnKey: string): void {
-    const exists = this.columns.some((column) => column.key === columnKey);
-    if (!exists) {
-      throw new Error(`Invalid column '${columnKey}'.`);
+    const availableColumns = this.columns.map((column) => column.key);
+    if (!availableColumns.includes(columnKey)) {
+      const suffix = availableColumns.length > 0 ? `Available columns: ${availableColumns.join(', ')}.` : 'No columns are configured.';
+      throw new Error(`Unknown column '${columnKey}'. ${suffix}`);
     }
   }
 
@@ -898,27 +925,69 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private assertSortableColumn(columnKey: string): void {
     const column = this.columns.find((item) => item.key === columnKey);
     if (column == null) {
-      throw new Error(`Invalid sort column '${columnKey}'.`);
+      const availableColumns = this.columns.map((item) => item.key).join(', ');
+      throw new Error(
+        availableColumns.length > 0
+          ? `Unknown sort column '${columnKey}'. Available columns: ${availableColumns}.`
+          : `Unknown sort column '${columnKey}'. No columns are configured.`
+      );
     }
 
     if (column.sortable === false) {
-      throw new Error(`Column '${columnKey}' is not sortable.`);
+      const sortableColumns = this.columns.filter((item) => item.sortable !== false).map((item) => item.key).join(', ');
+      throw new Error(
+        sortableColumns.length > 0
+          ? `Column '${columnKey}' is not sortable. Sortable columns: ${sortableColumns}.`
+          : `Column '${columnKey}' is not sortable. No sortable columns are configured.`
+      );
     }
   }
 
   private validateFilter(filter: TableFilter<T>): void {
     const column = this.columns.find((item) => item.key === filter.columnKey);
     if (column == null) {
-      throw new Error(`Invalid filter column '${filter.columnKey}'.`);
+      const availableColumns = this.columns.map((item) => item.key).join(', ');
+      throw new Error(
+        availableColumns.length > 0
+          ? `Unknown filter column '${filter.columnKey}'. Available columns: ${availableColumns}.`
+          : `Unknown filter column '${filter.columnKey}'. No columns are configured.`
+      );
     }
 
     if (!this.isOperatorAllowed(column, filter.operator)) {
-      throw new Error(`Filter operator '${filter.operator}' is not supported for column '${filter.columnKey}'.`);
+      const allowedOperators = this.getAllowedFilterOperators(column).join(', ');
+      throw new Error(
+        `Filter operator '${filter.operator}' is not supported for column '${filter.columnKey}'. Allowed operators: ${allowedOperators}.`
+      );
     }
 
     if (filter.operator === 'between' && (filter.value == null || filter.valueTo == null)) {
-      throw new Error(`Filter operator 'between' requires both value and valueTo for column '${filter.columnKey}'.`);
+      throw new Error(
+        `Filter operator 'between' requires both value and valueTo for column '${filter.columnKey}'. Provide both bounds to continue.`
+      );
     }
+  }
+
+  private getAllowedFilterOperators(column: TableColumn<T>): readonly TableFilterOperator[] {
+    if (column.dataType === 'text' || column.dataType === 'enum') {
+      return ['contains', 'equals', 'startsWith'];
+    }
+
+    if (
+      column.dataType === 'number' ||
+      column.dataType === 'decimal' ||
+      column.dataType === 'currency' ||
+      column.dataType === 'date' ||
+      column.dataType === 'datetime'
+    ) {
+      return ['eq', 'gt', 'gte', 'lt', 'lte', 'between'];
+    }
+
+    if (column.dataType === 'boolean') {
+      return ['isTrue', 'isFalse', 'eq'];
+    }
+
+    return [];
   }
 
   private isOperatorAllowed(column: TableColumn<T>, operator: TableFilterOperator): boolean {

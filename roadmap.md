@@ -75,14 +75,14 @@ These are the full target modules for a complete SaaS-ready library.
 3. Add pagination helpers (client-side first).
 4. Add column visibility controls.
 5. Add row selection and bulk action state helpers.
-6. Add CSV export utility.
+6. [x] CSV export utility.
 
 ## Phase 2: Developer Experience
 
 1. Add schema-driven column builder utilities.
 2. Add stronger TypeScript inference for row and column contracts.
-3. Add preset formatters (currency packs, locale packs, timezone helpers).
-4. Add better error messages and validation utilities.
+3. [x] Add preset formatters (currency packs, locale packs, timezone helpers).
+4. [x] Add better error messages and validation utilities.
 5. Add starter templates and copy-paste examples.
 
 ## Phase 3: SaaS Accelerators
@@ -110,6 +110,9 @@ Work strictly from top to bottom. Do not start the next item until the current i
 3. [x] Pagination helpers.
 4. [x] Column visibility state helpers.
 5. [x] Row selection and bulk action state helpers.
+6. [x] CSV export utility.
+7. [x] Add preset formatters (currency packs, locale packs, timezone helpers).
+8. [x] Add better error messages and validation utilities.
 
 ## Definition Of Done (for each item)
 
@@ -122,8 +125,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 6: CSV export utility.
+- Item 9: Add starter templates and copy-paste examples.
 - Scope for next implementation:
-- Export current table data projections (visible columns by default) to CSV text.
-- Support export scopes: all, filtered, sorted, paginated, selected.
-- Provide configurable delimiter and header behavior.
+- Add starter templates for common table and parser setups.
+- Add copy-paste examples for selectors, formatters, and actions.
+- Keep examples aligned with the current public API.

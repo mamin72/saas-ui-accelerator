@@ -2,6 +2,7 @@ import { Readable } from 'node:stream';
 import { XMLParser } from 'fast-xml-parser';
 import YAML from 'yaml';
 import { sortByRules, type SortRule } from './sortByRules';
+import { assertSupportedFormat } from './validation';
 
 export type DataFormat = 'json' | 'jsonl' | 'csv' | 'tsv' | 'xml' | 'yaml';
 
@@ -113,10 +114,10 @@ export function parseRecords(input: unknown, options: ParseOptions = {}): Parsed
   const format = resolveFormat(input, options);
   const codec = codecRegistry.get(format);
   if (codec == null) {
-    throw new Error(`No codec registered for format '${format}'.`);
+    assertSupportedFormat(format, getSupportedFormats());
   }
 
-  return codec.parse(input, options);
+  return codecRegistry.get(format)!.parse(input, options);
 }
 
 export async function parseRecordsFromStream(stream: Readable, options: ParseOptions = {}): Promise<ParsedRecord[]> {

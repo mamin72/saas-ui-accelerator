@@ -319,7 +319,7 @@ describe('formatSupport', () => {
 
   it('throws when requesting an unregistered format codec', () => {
     expect(() => parseRecords('name,value\nA,1', { format: '__custom__' as DataFormat })).toThrow(
-      "No codec registered"
+      "No codec registered for format '__custom__'. Supported formats: json, jsonl, csv, tsv, xml, yaml."
     );
   });
 });

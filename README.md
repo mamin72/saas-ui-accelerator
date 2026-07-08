@@ -14,6 +14,9 @@ Reusable TypeScript sorting component library.
 - Client-side pagination helpers with page controls and metadata (`setPagination`, `setPageSize`, `setPageIndex`, `getPageInfo`)
 - Column visibility state helpers (`setColumnVisibility`, `toggleColumnVisibility`, `setColumnVisibilityMap`, `clearColumnVisibility`)
 - Row selection and bulk action helpers (`selectRowByKey`, `selectAllFilteredRows`, `getSelectionInfo`, `executeBulkAction`)
+- CSV export utility (`exportCsv` with all/filtered/sorted/paginated/selected scopes)
+- Formatter preset helpers (`currencyPacks`, `localePacks`, `timezonePacks`, `createCurrencyPreset`, `createDateFormatterPreset`, `createDateTimeFormatterPreset`, `createTimezonePreset`)
+- Validation helpers for column configs, row keys, delimiter checks, and supported format errors
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -83,7 +86,7 @@ The package also includes a reusable table component model that accepts JSON and
 supports click-style header toggle sorting.
 
 ```ts
-import { JsonTableComponent } from "sort_component";
+import { JsonTableComponent, currencyPacks } from "sort_component";
 
 const table = new JsonTableComponent({
 	data: jsonString,
@@ -139,6 +142,16 @@ const bulkResult = await table.executeBulkAction((context) => {
 		selectedKeys: context.selectedRowKeys
 	};
 });
+
+const csvAll = table.exportCsv();
+const csvVisibleOnly = table.exportCsv({ scope: "sorted", delimiter: ";" });
+const csvSelected = table.exportCsv({ scope: "selected", includeHeaders: false });
+
+const eurAmountColumn = {
+	key: "amount",
+	header: "Amount",
+	...currencyPacks.eur
+};
 
 table.setFilters([
 	{ columnKey: "name", operator: "contains", value: "ali" },
@@ -199,6 +212,28 @@ Row selection APIs:
 - `getSelectedRows()` / `getSelectedFilteredRows()` / `getSelectedPaginatedRows()`
 - `getSelectionInfo()`
 - `executeBulkAction(handler)`
+
+CSV export API:
+
+- `exportCsv()`
+- scopes: `all`, `filtered`, `sorted`, `paginated`, `selected`
+- options: `delimiter`, `includeHeaders`, `includeHiddenColumns`
+
+Formatter preset helpers:
+
+- `currencyPacks`, `localePacks`, `timezonePacks`
+- `createCurrencyPreset(currencyCode, decimalPlaces?)`
+- `createDateFormatterPreset(dateLocale, dateLength?, options?)`
+- `createDateTimeFormatterPreset(dateLocale, dateLength?, options?)`
+- `createTimezonePreset(convertUtcToClientLocal)`
+
+Validation helpers:
+
+- `assertCsvDelimiter(delimiter)`
+- `assertCurrencyCode(code)`
+- `assertTableColumnConfig(column)`
+- `assertValidRowKeyValue(rowKey, value)`
+- `assertSupportedFormat(format, supportedFormats)`
 
 Action column support:
 
