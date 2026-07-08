@@ -74,6 +74,7 @@ runtime.component.dataGridPro;
 - Foundation token schema helpers for semantic aliases and naming conventions (`createTokenSchema`, `resolveTokenName`, `getTokenValue`, `validateTokenName`)
 - Baseline foundation theme packs with parity checks (`baselineThemePacks`, `createBaselineThemePacks`, `assertThemePacksShareTokenCoverage`, `assertThemePacksShareAliasCoverage`)
 - Density mode and RTL-safe token utilities (`resolveDensityModeTokens`, `resolveDirectionalTokenName`, `createDirectionalTokenPair`)
+- Typed theme resolver utilities with fallback/strict modes (`resolveThemePack`, `createThemeResolver`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -151,6 +152,15 @@ import { createDirectionalTokenPair, resolveDensityModeTokens } from "saas-ui-ac
 
 const compactTokens = resolveDensityModeTokens("compact");
 const rtlDirectional = createDirectionalTokenPair(undefined, "rtl");
+```
+
+```ts
+import { createThemeResolver } from "saas-ui-accelerator";
+
+const resolver = createThemeResolver(undefined, { fallbackTheme: "dark" });
+
+const currentTheme = resolver.resolve("light");
+const fallbackTheme = resolver.resolve("unknown");
 ```
 
 ## Data Format Contract

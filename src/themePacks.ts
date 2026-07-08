@@ -8,6 +8,7 @@ import {
 export type ThemeName = 'light' | 'dark' | 'high-contrast';
 export type DensityMode = 'compact' | 'comfortable' | 'spacious';
 export type TextDirection = 'ltr' | 'rtl';
+export type ThemeResolverFallbackMode = 'fallback' | 'throw';
 
 export interface DirectionalTokenMap {
   start: string;
@@ -25,6 +26,17 @@ export interface ThemePack<
 export interface DensityModeTokenLayer {
   mode: DensityMode;
   tokens: TokenDictionary;
+}
+
+export interface ThemeResolverOptions {
+  fallbackTheme?: ThemeName;
+  fallbackMode?: ThemeResolverFallbackMode;
+}
+
+export interface ThemeResolver {
+  resolve(themeName?: string, options?: ThemeResolverOptions): ThemePack;
+  isSupported(themeName: string): themeName is ThemeName;
+  getDefaultThemeName(): ThemeName;
 }
 
 const baseSemanticAliases = {
@@ -163,6 +175,56 @@ export const baselineDensityModeLayers = Object.freeze(
   createBaselineDensityModeLayers()
 );
 
+export function resolveThemePack(
+  themeName: string | undefined,
+  options: ThemeResolverOptions = {},
+  themePacks: Record<ThemeName, ThemePack> = baselineThemePacks
+): ThemePack {
+  const fallbackTheme = options.fallbackTheme ?? 'light';
+  const fallbackMode = options.fallbackMode ?? 'fallback';
+
+  if (!themeName) {
+    return themePacks[fallbackTheme];
+  }
+
+  if (isThemeName(themeName)) {
+    return themePacks[themeName];
+  }
+
+  if (fallbackMode === 'throw') {
+    throw new Error(
+      `Unknown theme '${themeName}'. Supported themes: ${listSupportedThemeNames(themePacks).join(', ')}.`
+    );
+  }
+
+  return themePacks[fallbackTheme];
+}
+
+export function createThemeResolver(
+  themePacks: Record<ThemeName, ThemePack> = baselineThemePacks,
+  defaults: ThemeResolverOptions = {}
+): ThemeResolver {
+  const defaultTheme = defaults.fallbackTheme ?? 'light';
+
+  return {
+    resolve(themeName?: string, options?: ThemeResolverOptions): ThemePack {
+      const mergedOptions: ThemeResolverOptions = {
+        fallbackTheme: defaultTheme,
+        fallbackMode: defaults.fallbackMode ?? 'fallback',
+        ...options,
+      };
+
+      return resolveThemePack(themeName, mergedOptions, themePacks);
+    },
+    isSupported(themeName: string): themeName is ThemeName {
+      return isThemeName(themeName);
+    },
+    getDefaultThemeName(): ThemeName {
+      return defaultTheme;
+    },
+  };
+}
+
 export function assertThemePacksShareTokenCoverage(themePacks: Record<ThemeName, ThemePack>): void {
   const [firstName, ...restNames] = Object.keys(themePacks) as ThemeName[];
   const baselineTokenKeys = sortedKeys(themePacks[firstName].schema.tokens);
@@ -263,4 +325,12 @@ function diffKeys(expected: string[], actual: string[]): string[] {
   }
 
   return differences;
+}
+
+function isThemeName(themeName: string): themeName is ThemeName {
+  return themeName === 'light' || themeName === 'dark' || themeName === 'high-contrast';
+}
+
+function listSupportedThemeNames(themePacks: Record<ThemeName, ThemePack>): ThemeName[] {
+  return Object.keys(themePacks) as ThemeName[];
 }

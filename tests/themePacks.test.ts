@@ -3,8 +3,10 @@ import {
   assertThemePacksShareAliasCoverage,
   assertThemePacksShareTokenCoverage,
   baselineThemePacks,
+  createThemeResolver,
   createDirectionalTokenPair,
   createThemePack,
+  resolveThemePack,
   resolveDensityModeTokens,
   resolveDirectionalTokenName,
 } from '../src/index';
@@ -116,5 +118,30 @@ describe('theme packs', () => {
       inlineStart: 'space.component.padding-end',
       inlineEnd: 'space.component.padding-start',
     });
+  });
+
+  it('resolves theme packs with default and fallback behavior', () => {
+    expect(resolveThemePack(undefined).name).toBe('light');
+    expect(resolveThemePack('dark').name).toBe('dark');
+    expect(resolveThemePack('unknown-theme').name).toBe('light');
+    expect(resolveThemePack('unknown-theme', { fallbackTheme: 'high-contrast' }).name).toBe(
+      'high-contrast'
+    );
+  });
+
+  it('supports resolver utility with strict and fallback modes', () => {
+    const resolver = createThemeResolver(baselineThemePacks, { fallbackTheme: 'dark' });
+
+    expect(resolver.getDefaultThemeName()).toBe('dark');
+    expect(resolver.isSupported('light')).toBe(true);
+    expect(resolver.isSupported('custom')).toBe(false);
+
+    expect(resolver.resolve(undefined).name).toBe('dark');
+    expect(resolver.resolve('light').name).toBe('light');
+    expect(resolver.resolve('custom').name).toBe('dark');
+
+    expect(() => resolver.resolve('custom', { fallbackMode: 'throw' })).toThrow(
+      "Unknown theme 'custom'. Supported themes: light, dark, high-contrast."
+    );
   });
 });

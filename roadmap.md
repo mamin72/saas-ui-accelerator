@@ -201,7 +201,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 20. [x] Phase 5/Foundation Track 1 chunk 1: define token schema, semantic aliases, and naming conventions.
 21. [x] Phase 5/Foundation Track 1 chunk 2: implement baseline theme packs (light, dark, high-contrast).
 22. [x] Phase 5/Foundation Track 1 chunk 3: implement density modes and RTL-safe token mapping.
-23. [ ] Phase 5/Foundation Track 1 chunk 4: add typed theme resolver utilities and fallback behavior.
+23. [x] Phase 5/Foundation Track 1 chunk 4: add typed theme resolver utilities and fallback behavior.
 24. [ ] Phase 5/Foundation Track 1 chunk 5: add tests, docs, and examples for token and theme usage.
 25. [ ] Phase 5/Foundation Track 1 completion gate: all chunk outputs integrated and validated.
 26. [ ] Phase 5/Foundation Track 2 chunk 1: define query hook contracts and cache adapter interfaces.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 23: Phase 5/Foundation Track 1 chunk 4 - typed theme resolver utilities and fallback behavior.
+- Item 24: Phase 5/Foundation Track 1 chunk 5 - tests, docs, and examples for token and theme usage.
 - Scope for next implementation:
-- Add typed theme resolver APIs for theme pack lookup by name.
-- Add fallback behavior for unsupported theme names.
-- Add tests for resolver defaulting and error/fallback modes.
+- Expand integration-style tests that combine token schema, theme packs, density modes, and resolver utilities.
+- Add consolidated developer-facing documentation examples for Foundation Track 1 usage.
+- Finalize and verify completion gate readiness for item 25.
