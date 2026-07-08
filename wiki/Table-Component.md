@@ -250,6 +250,28 @@ Adapter APIs:
 - `toServerPaginationRequest(pagination)`
 - `createServerTableRequest({ sortRules, filters, pagination })`
 
+## Action Audit Hooks
+
+Action columns support transport-agnostic audit metadata hooks around action execution.
+
+```ts
+const actionColumn = createDefaultMuiActionColumn({
+  router: { navigate: (to) => router.navigate(to) },
+  getViewRoute: (row) => `/users/${row.id}`,
+  onAudit: (event) => {
+    console.log(event.actionId, event.outcome, event.rowKey, event.timestamp);
+  }
+});
+```
+
+Audit event metadata includes:
+
+- `actionId`
+- `outcome` (`started`, `confirmed`, `cancelled`, `completed`, `failed`)
+- `row` and `rowKey`
+- `timestamp`
+- `route`, `requiresConfirmation`, `confirmed`, `success`, `errorMessage`
+
 ## Formatter Presets
 
 The package also exports reusable formatter preset helpers for common regional defaults.

@@ -984,4 +984,67 @@ describe('JsonTableComponent', () => {
 
     expect(events).toEqual(['view:Alice', 'edit:Alice', 'archive:Alice', 'delete:Alice']);
   });
+
+  it('emits audit metadata events around action execution lifecycle', async () => {
+    const auditEvents: string[] = [];
+    const actionColumn = createDefaultMuiActionColumn({
+      router: { navigate: () => {} },
+      onView: () => {},
+      onAudit: (event) => {
+        auditEvents.push(`${event.actionId}:${event.outcome}:${String(event.rowKey)}:${event.requiresConfirmation}`);
+      },
+    });
+
+    const component = new JsonTableComponent({
+      data: [{ id: 'u1', name: 'Alice' }],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+      actionColumn,
+      rowKey: 'id',
+    });
+
+    const actions = component.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const view = actions.find((action) => action.id === 'view');
+    await view?.execute();
+
+    expect(auditEvents).toEqual(['view:started:u1:false', 'view:completed:u1:false']);
+  });
+
+  it('emits cancellation and failure audit outcomes and does not fail when onAudit throws', async () => {
+    const cancellations: string[] = [];
+    const cancellableColumn = createDefaultMuiActionColumn({
+      router: { navigate: () => {} },
+      confirm: () => false,
+      getArchiveRoute: () => '/archive',
+      onAudit: (event) => {
+        cancellations.push(`${event.actionId}:${event.outcome}:${String(event.confirmed)}`);
+      },
+    });
+
+    const componentCancel = new JsonTableComponent({ data: rows, columns, actionColumn: cancellableColumn });
+    const cancelActions = componentCancel.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const archive = cancelActions.find((action) => action.id === 'archive');
+    const cancelled = await archive?.execute();
+    expect(cancelled).toBe(false);
+    expect(cancellations).toEqual(['archive:started:undefined', 'archive:cancelled:false']);
+
+    const failures: string[] = [];
+    const failingColumn = createDefaultMuiActionColumn({
+      router: { navigate: () => {} },
+      onView: () => {
+        throw new Error('boom');
+      },
+      onAudit: (event) => {
+        failures.push(`${event.actionId}:${event.outcome}:${String(event.success)}:${event.errorMessage ?? ''}`);
+        throw new Error('audit failed');
+      },
+    });
+
+    const componentFail = new JsonTableComponent({ data: rows, columns, actionColumn: failingColumn });
+    const failActions = componentFail.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const view = failActions.find((action) => action.id === 'view');
+
+    await expect(view?.execute()).rejects.toThrow('boom');
+    expect(failures[0]).toContain('view:started');
+    expect(failures[1]).toContain('view:failed:false:boom');
+  });
 });

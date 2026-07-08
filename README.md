@@ -20,6 +20,7 @@ Reusable TypeScript sorting component library.
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Saved views model for table state round-trip (`createSavedView`, `applySavedView`, `saveView`, `loadView`, `listSavedViews`)
 - Server-side mode adapters for API-ready request models (`toServerSortRules`, `toServerFilterRules`, `toServerPaginationRequest`, `createServerTableRequest`)
+- Action audit metadata hooks for row actions (`onAudit` with structured lifecycle events)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -337,6 +338,20 @@ Action column support:
 - MUI icon names included (`Visibility`, `Edit`, `Archive`, `Delete`)
 - router navigation hooks for each action
 - built-in confirmation before `archive` and `delete`
+- audit metadata hooks (`onAudit`) for action lifecycle observability
+
+Action audit hook example:
+
+```ts
+const actionColumn = createDefaultMuiActionColumn({
+	router: { navigate: (to) => router.navigate(to) },
+	getViewRoute: (row) => `/users/${row.id}`,
+	onAudit: (event) => {
+		// event includes actionId, outcome, row, rowKey, timestamp, route, and status fields
+		console.log(event);
+	}
+});
+```
 
 ```ts
 import { JsonTableComponent, createDefaultMuiActionColumn } from "sort_component";

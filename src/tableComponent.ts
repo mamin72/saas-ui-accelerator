@@ -23,6 +23,7 @@ export type TableFilterOperator =
   | 'isFalse';
 export type TableActionId = 'view' | 'edit' | 'archive' | 'delete';
 export type MuiActionIconName = 'Visibility' | 'Edit' | 'Archive' | 'Delete';
+export type TableActionAuditOutcome = 'started' | 'confirmed' | 'cancelled' | 'completed' | 'failed';
 
 export interface TableActionRouter {
   navigate(to: string): void;
@@ -46,6 +47,20 @@ export interface TableActionColumn<T extends Record<string, unknown>> {
   readonly actions: readonly TableActionDefinition<T>[];
   readonly router?: TableActionRouter;
   readonly confirm?: (input: { actionId: TableActionId; message: string; row: T }) => boolean | Promise<boolean>;
+  readonly onAudit?: (event: TableActionAuditEvent<T>) => void | Promise<void>;
+}
+
+export interface TableActionAuditEvent<T extends Record<string, unknown>> {
+  readonly actionId: TableActionId;
+  readonly outcome: TableActionAuditOutcome;
+  readonly row: T;
+  readonly rowKey: TableRowKey;
+  readonly timestamp: string;
+  readonly route?: string;
+  readonly requiresConfirmation: boolean;
+  readonly confirmed?: boolean;
+  readonly success?: boolean;
+  readonly errorMessage?: string;
 }
 
 export interface TableDefaultActionColumnOptions<T extends Record<string, unknown>> {
@@ -53,6 +68,7 @@ export interface TableDefaultActionColumnOptions<T extends Record<string, unknow
   readonly header?: string;
   readonly router: TableActionRouter;
   readonly confirm?: (input: { actionId: TableActionId; message: string; row: T }) => boolean | Promise<boolean>;
+  readonly onAudit?: (event: TableActionAuditEvent<T>) => void | Promise<void>;
   readonly getViewRoute?: (row: T) => string;
   readonly getEditRoute?: (row: T) => string;
   readonly getArchiveRoute?: (row: T) => string;
@@ -739,6 +755,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     actionColumn: TableActionColumn<T>
   ): TableActionState {
     const route = this.resolveRoute(action, row);
+    const rowKey = this.getRowKeyByRow(row);
     const hasHandler = route != null || action.onAction != null;
     const explicitlyEnabled = action.enabled?.(row) ?? true;
     const disabled = !hasHandler || !explicitlyEnabled;
@@ -754,24 +771,106 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
         }
 
         const needsConfirmation = action.requiresConfirmation ?? (action.id === 'archive' || action.id === 'delete');
-        if (needsConfirmation) {
-          const approved = await this.requestConfirmation(action, row, actionColumn);
-          if (!approved) {
-            return false;
+        await this.emitActionAudit(actionColumn, {
+          actionId: action.id,
+          outcome: 'started',
+          row,
+          rowKey,
+          timestamp: new Date().toISOString(),
+          route,
+          requiresConfirmation: needsConfirmation,
+        });
+
+        try {
+          if (needsConfirmation) {
+            const approved = await this.requestConfirmation(action, row, actionColumn);
+            await this.emitActionAudit(actionColumn, {
+              actionId: action.id,
+              outcome: approved ? 'confirmed' : 'cancelled',
+              row,
+              rowKey,
+              timestamp: new Date().toISOString(),
+              route,
+              requiresConfirmation: needsConfirmation,
+              confirmed: approved,
+              success: approved,
+            });
+
+            if (!approved) {
+              return false;
+            }
           }
-        }
 
-        if (route != null) {
-          actionColumn.router?.navigate(route);
-        }
+          if (route != null) {
+            actionColumn.router?.navigate(route);
+          }
 
-        if (action.onAction != null) {
-          await action.onAction(row);
-        }
+          if (action.onAction != null) {
+            await action.onAction(row);
+          }
 
-        return true;
+          await this.emitActionAudit(actionColumn, {
+            actionId: action.id,
+            outcome: 'completed',
+            row,
+            rowKey,
+            timestamp: new Date().toISOString(),
+            route,
+            requiresConfirmation: needsConfirmation,
+            success: true,
+          });
+
+          return true;
+        } catch (error) {
+          await this.emitActionAudit(actionColumn, {
+            actionId: action.id,
+            outcome: 'failed',
+            row,
+            rowKey,
+            timestamp: new Date().toISOString(),
+            route,
+            requiresConfirmation: needsConfirmation,
+            success: false,
+            errorMessage: this.errorToMessage(error),
+          });
+
+          throw error;
+        }
       },
     };
+  }
+
+  private getRowKeyByRow(row: T): TableRowKey {
+    const token = this.getRowTokenByRow(row);
+    const key = this.rowKeyTokenToKey.get(token);
+    if (key == null) {
+      throw new Error('Unable to resolve row key for action audit event.');
+    }
+
+    return key;
+  }
+
+  private async emitActionAudit(
+    actionColumn: TableActionColumn<T>,
+    event: TableActionAuditEvent<T>
+  ): Promise<void> {
+    if (actionColumn.onAudit == null) {
+      return;
+    }
+
+    try {
+      await Promise.resolve(actionColumn.onAudit(event));
+    } catch {
+      // Audit hooks are observational and should never block action execution.
+    }
+  }
+
+  private errorToMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return String(error);
   }
 
   private resolveRoute(action: TableActionDefinition<T>, row: T): string | undefined {
@@ -1428,6 +1527,7 @@ export function createDefaultMuiActionColumn<T extends Record<string, unknown>>(
     header: options.header ?? 'Actions',
     router: options.router,
     confirm: options.confirm,
+    onAudit: options.onAudit,
     actions: [
       {
         id: 'view',
