@@ -24,9 +24,13 @@ jobs:
               - 'wiki/**'
               - '.github/*.md'
 
+      - name: Checkout repository
+        if: steps.filter.outputs.docs_only == 'true'
+        uses: actions/checkout@v4
+
       - name: Enable auto-merge for docs-only PRs
         if: steps.filter.outputs.docs_only == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr merge ${{ github.event.pull_request.number }} --auto --squash
+          gh pr merge ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --auto --squash
