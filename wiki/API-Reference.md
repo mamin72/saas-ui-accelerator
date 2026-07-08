@@ -2,6 +2,7 @@
 
 For runnable access-control examples, see [Access Control Primitives](Access-Control-Primitives).
 For runnable resilience examples, see [Resilience Primitives](Resilience-Primitives).
+For runnable localization examples, see [Localization Primitives](Localization-Primitives).
 
 ## sortByRules
 
@@ -270,6 +271,226 @@ combinePolicyEvaluationDecisions(results: readonly Array<{ allowed: boolean; rea
 ```
 
 Combines multiple policy evaluation results into a single allow/deny decision with merged reasons.
+
+## Localization Primitives
+
+### createTranslationKeyContract
+
+```ts
+createTranslationKeyContract(input: {
+  key: string;
+  description?: string;
+  placeholders?: readonly {
+    name: string;
+    type?: "string" | "number" | "boolean" | "date";
+    required?: boolean;
+  }[];
+  fallbackMessage?: string;
+}): TranslationKeyContract
+```
+
+Creates normalized translation key contracts for message templates.
+
+### createMessageFormatterContract
+
+```ts
+createMessageFormatterContract(input: {
+  locale: string;
+  fallbackLocale?: string;
+  timeZone?: string;
+  missingKeyPolicy?: "throw" | "fallback-message" | "return-key";
+}): MessageFormatterContract
+```
+
+Creates formatter contracts that control locale, fallback locale, timezone, and missing-key behavior.
+
+### createMessageCatalog
+
+```ts
+createMessageCatalog(entries: readonly MessageCatalogEntry[]): MessageCatalog
+```
+
+Creates a locale-keyed message catalog for message template resolution.
+
+### formatMessage
+
+```ts
+formatMessage(input: {
+  contract: TranslationKeyContract;
+  formatter: MessageFormatterContract;
+  catalog: MessageCatalog;
+  values?: Readonly<Record<string, unknown>>;
+  localeOverride?: string;
+}): MessageFormatResult
+```
+
+Formats template messages using locale/fallback behavior and placeholder rendering.
+
+### createLocaleNumberFormatterContract
+
+```ts
+createLocaleNumberFormatterContract(input: {
+  locale: string;
+  fallbackLocale?: string;
+  useGrouping?: boolean;
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+  notation?: "standard" | "scientific" | "engineering" | "compact";
+}): LocaleNumberFormatterContract
+```
+
+Creates locale-aware number formatter contracts with validation.
+
+### createLocaleCurrencyFormatterContract
+
+```ts
+createLocaleCurrencyFormatterContract(input: {
+  locale: string;
+  fallbackLocale?: string;
+  currency: string;
+  currencyDisplay?: "symbol" | "narrowSymbol" | "code" | "name";
+  currencySign?: "standard" | "accounting";
+  useGrouping?: boolean;
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+}): LocaleCurrencyFormatterContract
+```
+
+Creates locale-aware currency formatter contracts with ISO-4217 validation.
+
+### formatLocaleNumber
+
+```ts
+formatLocaleNumber(input: {
+  value: number;
+  contract: LocaleNumberFormatterContract;
+  localeOverride?: string;
+}): LocalizedFormatResult
+```
+
+Formats numbers with locale-aware grouping, fraction, and notation settings.
+
+### formatLocaleCurrency
+
+```ts
+formatLocaleCurrency(input: {
+  value: number;
+  contract: LocaleCurrencyFormatterContract;
+  localeOverride?: string;
+}): LocalizedFormatResult
+```
+
+Formats currency values with locale-aware symbol/code and precision settings.
+
+### createLocaleDateTimeFormatterContract
+
+```ts
+createLocaleDateTimeFormatterContract(input: {
+  locale: string;
+  fallbackLocale?: string;
+  timeZone: string;
+  dateStyle?: "short" | "medium" | "long" | "full";
+  timeStyle?: "short" | "medium" | "long" | "full";
+}): LocaleDateTimeFormatterContract
+```
+
+Creates timezone-safe date-time formatter contracts.
+
+### createLocaleDateParseContract
+
+```ts
+createLocaleDateParseContract(input: {
+  inputTimeZone: string;
+  outputTimeZone?: string;
+  fallbackTimeZone?: string;
+}): LocaleDateParseContract
+```
+
+Creates timezone parse contracts for normalized date parsing workflows.
+
+### formatLocaleDateTime
+
+```ts
+formatLocaleDateTime(input: {
+  value: Date | string | number;
+  contract: LocaleDateTimeFormatterContract;
+  localeOverride?: string;
+  timeZoneOverride?: string;
+}): LocalizedDateTimeResult
+```
+
+Formats date-time values with locale and timezone override/fallback handling.
+
+### parseZonedDateTime
+
+```ts
+parseZonedDateTime(input: {
+  value: string | Date | number;
+  contract: LocaleDateParseContract;
+}): ParsedZonedDateTimeResult
+```
+
+Parses date-time inputs and returns parsed date metadata with timezone fallback details.
+
+### convertDateTimeToTimeZone
+
+```ts
+convertDateTimeToTimeZone(input: {
+  value: Date | string | number;
+  fromTimeZone: string;
+  toTimeZone: string;
+  locale?: string;
+}): ParsedZonedDateTimeResult
+```
+
+Converts a date-time snapshot to a target timezone representation.
+
+### createLocaleTextSortContract
+
+```ts
+createLocaleTextSortContract(input: {
+  locale: string;
+  fallbackLocale?: string;
+  sensitivity?: Intl.CollatorOptions["sensitivity"];
+  caseFirst?: Intl.CollatorOptions["caseFirst"];
+  ignorePunctuation?: boolean;
+  numeric?: boolean;
+}): LocaleTextSortContract
+```
+
+Creates locale collation contracts for text sorting behavior.
+
+### sortByLocaleRules
+
+```ts
+sortByLocaleRules<T>(items: readonly T[], rules: readonly LocaleSortRule<T>[], contract: LocaleTextSortContract): T[]
+```
+
+Sorts rows using locale-aware collation and mixed-type comparisons.
+
+### createLocaleFilterContract
+
+```ts
+createLocaleFilterContract(input: {
+  locale: string;
+  fallbackLocale?: string;
+  timeZone?: string;
+  caseSensitive?: boolean;
+}): LocaleFilterContract
+```
+
+Creates locale filter contracts with timezone and case-sensitivity controls.
+
+### evaluateLocaleFilterPredicate
+
+```ts
+evaluateLocaleFilterPredicate(
+  input: LocaleFilterPredicateInput,
+  contract: LocaleFilterContract
+): boolean
+```
+
+Evaluates locale-aware text/number/date filter predicates including range checks.
 
 ## createErrorBoundaryContract
 

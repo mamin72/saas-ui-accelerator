@@ -226,7 +226,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 45. [x] Phase 5/Foundation Track 5 chunk 2: implement locale-aware number and currency formatting helpers.
 46. [x] Phase 5/Foundation Track 5 chunk 3: implement timezone-safe date formatting and parsing helpers.
 47. [x] Phase 5/Foundation Track 5 chunk 4: implement locale-aware sort and filter utilities.
-48. [ ] Phase 5/Foundation Track 5 chunk 5: add tests, docs, and examples for localization primitives.
+48. [x] Phase 5/Foundation Track 5 chunk 5: add tests, docs, and examples for localization primitives.
 49. [ ] Phase 5/Foundation Track 5 completion gate: all chunk outputs integrated and validated.
 50. [ ] Phase 6/Auth Kit chunk 1: define sign-in/sign-up form schemas, typed submission contracts, and validation/error mapping helpers.
 51. [ ] Phase 6/Auth Kit chunk 2: implement password recovery and magic-link workflows with token lifecycle, expiry handling, and typed callbacks.

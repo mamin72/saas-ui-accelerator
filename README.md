@@ -92,6 +92,10 @@ runtime.component.dataGridPro;
 - Permission-aware action predicates (`permissions`, `permissionResolver`, predicate context helpers)
 - Usage telemetry hooks for table interactions (`telemetry` on `JsonTableComponent`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
+- Localization message primitives (`createTranslationKeyContract`, `createMessageFormatterContract`, `createMessageCatalog`, `formatMessage`)
+- Locale-aware number and currency formatting helpers (`createLocaleNumberFormatterContract`, `createLocaleCurrencyFormatterContract`, `formatLocaleNumber`, `formatLocaleCurrency`)
+- Timezone-safe date formatting and parsing helpers (`createLocaleDateTimeFormatterContract`, `createLocaleDateParseContract`, `formatLocaleDateTime`, `parseZonedDateTime`, `convertDateTimeToTimeZone`)
+- Locale-aware sort and filter helpers (`createLocaleTextSortContract`, `createLocaleFilterContract`, `sortByLocaleRules`, `evaluateLocaleFilterPredicate`)
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
 ### Planned (Future)
