@@ -78,6 +78,7 @@ runtime.component.dataGridPro;
 - Query hook contracts and cache adapter primitives (`createQueryHookContract`, `createQueryCacheKey`, `createInMemoryCacheAdapter`)
 - Optimistic update and rollback cache lifecycle primitives (`applyOptimisticCacheUpdate`, `commitOptimisticCacheUpdate`, `rollbackOptimisticCacheUpdate`)
 - Offline-aware queue and replay primitives (`createOfflineQueue`, `replayOfflineQueue`)
+- Mutation lifecycle state and event primitives (`createMutationLifecycle`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -260,6 +261,22 @@ await replayOfflineQueue({
     void item;
   }
 });
+
+import { createMutationLifecycle } from "saas-ui-accelerator";
+
+const lifecycle = createMutationLifecycle<{ status: string }, string>({
+  key: "users.update"
+});
+
+lifecycle.applyOptimistic({ status: "saving" });
+lifecycle.commit({ status: "saved" });
+
+// If a commit fails, rollback and retry emit lifecycle events.
+lifecycle.rollback("offline");
+lifecycle.retry();
+
+const eventTypes = lifecycle.listEvents().map((event) => event.type);
+// ["optimistic-applied", "committed", "rolled-back", "retry"]
 ```
 
 ## Data Format Contract

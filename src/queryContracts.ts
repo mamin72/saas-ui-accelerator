@@ -73,6 +73,46 @@ export interface OfflineQueue<TPayload = unknown> {
   list(): readonly OfflineQueueItem<TPayload>[];
 }
 
+export type MutationLifecycleStatus = 'idle' | 'pending' | 'committed' | 'rolled-back' | 'failed';
+
+export type MutationLifecycleEventType =
+  | 'optimistic-applied'
+  | 'committed'
+  | 'rolled-back'
+  | 'retry'
+  | 'failed';
+
+export interface MutationLifecycleState<TValue = unknown, TError = unknown> {
+  key: string;
+  status: MutationLifecycleStatus;
+  attempt: number;
+  optimisticValue?: TValue;
+  committedValue?: TValue;
+  error?: TError;
+  updatedAtEpochMs: number;
+}
+
+export interface MutationLifecycleEvent<TValue = unknown, TError = unknown> {
+  type: MutationLifecycleEventType;
+  key: string;
+  state: MutationLifecycleState<TValue, TError>;
+  atEpochMs: number;
+}
+
+export interface MutationLifecycle<TValue = unknown, TError = unknown> {
+  getState(): MutationLifecycleState<TValue, TError>;
+  listEvents(): readonly MutationLifecycleEvent<TValue, TError>[];
+  subscribe(
+    listener: (event: MutationLifecycleEvent<TValue, TError>) => void
+  ): () => void;
+  applyOptimistic(value: TValue): MutationLifecycleState<TValue, TError>;
+  commit(value: TValue): MutationLifecycleState<TValue, TError>;
+  rollback(error?: TError): MutationLifecycleState<TValue, TError>;
+  retry(): MutationLifecycleState<TValue, TError>;
+  fail(error: TError): MutationLifecycleState<TValue, TError>;
+  reset(): MutationLifecycleState<TValue, TError>;
+}
+
 export function createInMemoryCacheAdapter<TValue = unknown>(): CacheAdapter<TValue> {
   const storage = new Map<string, CacheEntry<TValue>>();
 
@@ -273,6 +313,131 @@ export async function replayOfflineQueue<TPayload = unknown>(input: {
     processed,
     failed,
     remaining: input.queue.size(),
+  };
+}
+
+export function createMutationLifecycle<TValue = unknown, TError = unknown>(input: {
+  key: string;
+  nowEpochMs?: () => number;
+  maxEvents?: number;
+}): MutationLifecycle<TValue, TError> {
+  const key = input.key.trim();
+  if (key.length === 0) {
+    throw new Error('Mutation lifecycle key must be non-empty.');
+  }
+
+  const nowEpochMs = input.nowEpochMs ?? (() => Date.now());
+  const maxEvents = input.maxEvents ?? 100;
+  const listeners = new Set<(event: MutationLifecycleEvent<TValue, TError>) => void>();
+  const events: MutationLifecycleEvent<TValue, TError>[] = [];
+
+  let state: MutationLifecycleState<TValue, TError> = {
+    key,
+    status: 'idle',
+    attempt: 0,
+    updatedAtEpochMs: nowEpochMs(),
+  };
+
+  const emit = (type: MutationLifecycleEventType): void => {
+    const event: MutationLifecycleEvent<TValue, TError> = {
+      type,
+      key,
+      state: { ...state },
+      atEpochMs: state.updatedAtEpochMs,
+    };
+
+    events.push(event);
+    if (events.length > maxEvents) {
+      events.splice(0, events.length - maxEvents);
+    }
+
+    for (const listener of listeners) {
+      listener(event);
+    }
+  };
+
+  return {
+    getState(): MutationLifecycleState<TValue, TError> {
+      return { ...state };
+    },
+    listEvents(): readonly MutationLifecycleEvent<TValue, TError>[] {
+      return events.map((event) => ({ ...event, state: { ...event.state } }));
+    },
+    subscribe(listener): () => void {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    applyOptimistic(value: TValue): MutationLifecycleState<TValue, TError> {
+      state = {
+        key,
+        status: 'pending',
+        attempt: state.attempt + 1,
+        optimisticValue: value,
+        committedValue: state.committedValue,
+        updatedAtEpochMs: nowEpochMs(),
+      };
+
+      emit('optimistic-applied');
+      return { ...state };
+    },
+    commit(value: TValue): MutationLifecycleState<TValue, TError> {
+      state = {
+        ...state,
+        status: 'committed',
+        committedValue: value,
+        error: undefined,
+        updatedAtEpochMs: nowEpochMs(),
+      };
+
+      emit('committed');
+      return { ...state };
+    },
+    rollback(error?: TError): MutationLifecycleState<TValue, TError> {
+      state = {
+        ...state,
+        status: 'rolled-back',
+        error,
+        updatedAtEpochMs: nowEpochMs(),
+      };
+
+      emit('rolled-back');
+      return { ...state };
+    },
+    retry(): MutationLifecycleState<TValue, TError> {
+      state = {
+        ...state,
+        status: 'pending',
+        attempt: state.attempt + 1,
+        error: undefined,
+        updatedAtEpochMs: nowEpochMs(),
+      };
+
+      emit('retry');
+      return { ...state };
+    },
+    fail(error: TError): MutationLifecycleState<TValue, TError> {
+      state = {
+        ...state,
+        status: 'failed',
+        error,
+        updatedAtEpochMs: nowEpochMs(),
+      };
+
+      emit('failed');
+      return { ...state };
+    },
+    reset(): MutationLifecycleState<TValue, TError> {
+      state = {
+        key,
+        status: 'idle',
+        attempt: 0,
+        updatedAtEpochMs: nowEpochMs(),
+      };
+
+      return { ...state };
+    },
   };
 }
 

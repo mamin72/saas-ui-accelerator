@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applyOptimisticCacheUpdate,
   commitOptimisticCacheUpdate,
+  createMutationLifecycle,
   createOfflineQueue,
   createInMemoryCacheAdapter,
   createQueryCacheKey,
@@ -321,5 +322,100 @@ describe('query contracts', () => {
     });
 
     expect(result).toEqual({ processed: 0, failed: 0, remaining: 1 });
+  });
+
+  it('tracks mutation lifecycle state transitions and event ordering', () => {
+    let now = 1000;
+    const lifecycle = createMutationLifecycle<{ status: string }, string>({
+      key: 'user.update',
+      nowEpochMs: () => now,
+    });
+
+    const optimistic = lifecycle.applyOptimistic({ status: 'saving' });
+    expect(optimistic.status).toBe('pending');
+    expect(optimistic.attempt).toBe(1);
+
+    now = 1010;
+    const committed = lifecycle.commit({ status: 'saved' });
+    expect(committed.status).toBe('committed');
+    expect(committed.committedValue).toEqual({ status: 'saved' });
+
+    now = 1020;
+    const rolledBack = lifecycle.rollback('offline');
+    expect(rolledBack.status).toBe('rolled-back');
+    expect(rolledBack.error).toBe('offline');
+
+    now = 1030;
+    const retried = lifecycle.retry();
+    expect(retried.status).toBe('pending');
+    expect(retried.attempt).toBe(2);
+
+    now = 1040;
+    const failed = lifecycle.fail('timeout');
+    expect(failed.status).toBe('failed');
+    expect(failed.error).toBe('timeout');
+
+    const eventTypes = lifecycle.listEvents().map((event) => event.type);
+    expect(eventTypes).toEqual(['optimistic-applied', 'committed', 'rolled-back', 'retry', 'failed']);
+  });
+
+  it('supports mutation lifecycle subscriptions and unsubscription', () => {
+    const lifecycle = createMutationLifecycle<number, string>({
+      key: 'counter.increment',
+      nowEpochMs: () => 10,
+    });
+
+    const observed: string[] = [];
+    const unsubscribe = lifecycle.subscribe((event) => {
+      observed.push(event.type);
+    });
+
+    lifecycle.applyOptimistic(1);
+    lifecycle.commit(2);
+    unsubscribe();
+    lifecycle.rollback('ignored');
+
+    expect(observed).toEqual(['optimistic-applied', 'committed']);
+  });
+
+  it('caps stored mutation lifecycle events when maxEvents is configured', () => {
+    const lifecycle = createMutationLifecycle<{ ok: boolean }, string>({
+      key: 'limited.events',
+      nowEpochMs: () => 20,
+      maxEvents: 2,
+    });
+
+    lifecycle.applyOptimistic({ ok: true });
+    lifecycle.commit({ ok: true });
+    lifecycle.fail('boom');
+
+    const eventTypes = lifecycle.listEvents().map((event) => event.type);
+    expect(eventTypes).toEqual(['committed', 'failed']);
+  });
+
+  it('resets mutation lifecycle to idle baseline', () => {
+    const lifecycle = createMutationLifecycle<{ v: number }, string>({
+      key: 'reset.case',
+      nowEpochMs: () => 30,
+    });
+
+    lifecycle.applyOptimistic({ v: 1 });
+    lifecycle.fail('error');
+
+    const resetState = lifecycle.reset();
+    expect(resetState).toEqual({
+      key: 'reset.case',
+      status: 'idle',
+      attempt: 0,
+      updatedAtEpochMs: 30,
+    });
+  });
+
+  it('rejects empty mutation lifecycle keys', () => {
+    expect(() =>
+      createMutationLifecycle({
+        key: '   ',
+      })
+    ).toThrow('Mutation lifecycle key must be non-empty.');
   });
 });
