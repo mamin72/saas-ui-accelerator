@@ -10,6 +10,7 @@ export * from './pageAccessContracts';
 export * from './componentAccessContracts';
 export * from './fieldAccessGuards';
 export * from './tenantPolicyEvaluation';
+export * from './errorResilienceContracts';
 export * from './tokenSchema';
 export * from './themePacks';
 export * from './queryContracts';
