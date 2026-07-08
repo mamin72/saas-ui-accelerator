@@ -76,6 +76,7 @@ runtime.component.dataGridPro;
 - Server-side mode adapters for API-ready request models (`toServerSortRules`, `toServerFilterRules`, `toServerPaginationRequest`, `createServerTableRequest`)
 - Action audit metadata hooks for row actions (`onAudit` with structured lifecycle events)
 - Permission-aware action predicates (`permissions`, `permissionResolver`, predicate context helpers)
+- Usage telemetry hooks for table interactions (`telemetry` on `JsonTableComponent`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -430,6 +431,26 @@ const actionColumn = createDefaultMuiActionColumn({
 	}
 });
 ```
+
+Usage telemetry hook example:
+
+```ts
+const table = new JsonTableComponent({
+	data: [{ id: "u1", name: "Alice" }],
+	columns: [{ key: "name", header: "Name", dataType: "text", sortable: true }],
+	rowKey: "id",
+	telemetry: (event) => {
+		console.log(event.type, event.timestamp, event.metadata);
+	}
+});
+
+table.setFilters([{ columnKey: "name", operator: "contains", value: "A" }]);
+table.toggleSort("name");
+table.setPagination({ pageIndex: 0, pageSize: 25 });
+table.selectRowByKey("u1");
+```
+
+Telemetry callbacks are observational and side-effect safe: callback failures are ignored.
 
 ```ts
 import { JsonTableComponent, createDefaultMuiActionColumn } from "sort_component";

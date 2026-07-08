@@ -1150,4 +1150,79 @@ describe('JsonTableComponent', () => {
     expect(firstActions.map((action) => action.id)).toEqual(['view', 'delete']);
     expect(secondActions.map((action) => action.id)).toEqual(['view']);
   });
+
+  it('emits telemetry events for filtering, sorting, pagination, and selection interactions', () => {
+    const telemetryEvents: string[] = [];
+    const component = new JsonTableComponent({
+      data: [
+        { id: 'u1', name: 'Alice', age: 30 },
+        { id: 'u2', name: 'Bob', age: 20 },
+      ],
+      columns: [
+        { key: 'name', header: 'Name', dataType: 'text', sortable: true },
+        { key: 'age', header: 'Age', dataType: 'number', sortable: true },
+      ],
+      rowKey: 'id',
+      telemetry: (event) => {
+        telemetryEvents.push(`${event.type}:${event.selectedRowKeys?.length ?? ''}`);
+      },
+    });
+
+    component.setFilters([{ columnKey: 'name', operator: 'contains', value: 'a' }]);
+    component.clearFilters();
+    component.setSortRules([{ columnKey: 'name', direction: 'asc' }]);
+    component.appendSort('age', 'desc');
+    component.toggleSort('name');
+    component.clearSort();
+    component.setPagination({ pageIndex: 0, pageSize: 1 });
+    component.setPageIndex(1);
+    component.setPageSize(2);
+    component.clearPagination();
+    component.selectRowByKey('u1');
+    component.toggleRowSelectionByKey('u1');
+    component.setSelectedRowKeys(['u2']);
+    component.selectAllRows();
+    component.selectAllFilteredRows();
+    component.selectAllPaginatedRows();
+    component.clearSelection();
+
+    expect(telemetryEvents).toContain('filter:set:');
+    expect(telemetryEvents).toContain('filter:clear:');
+    expect(telemetryEvents).toContain('sort:set-rules:');
+    expect(telemetryEvents).toContain('sort:append:');
+    expect(telemetryEvents).toContain('sort:toggle:');
+    expect(telemetryEvents).toContain('sort:clear:');
+    expect(telemetryEvents).toContain('pagination:set:');
+    expect(telemetryEvents).toContain('pagination:set-index:');
+    expect(telemetryEvents).toContain('pagination:set-size:');
+    expect(telemetryEvents).toContain('pagination:clear:');
+    expect(telemetryEvents).toContain('selection:select-key:1');
+    expect(telemetryEvents).toContain('selection:toggle-key:0');
+    expect(telemetryEvents).toContain('selection:set:1');
+    expect(telemetryEvents).toContain('selection:select-all:2');
+    expect(telemetryEvents).toContain('selection:select-all-filtered:2');
+    expect(telemetryEvents).toContain('selection:select-all-paginated:2');
+    expect(telemetryEvents).toContain('selection:clear:0');
+  });
+
+  it('does not throw when telemetry callback throws or rejects', async () => {
+    const component = new JsonTableComponent({
+      data: [{ id: 'u1', name: 'Alice' }],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text', sortable: true }],
+      rowKey: 'id',
+      telemetry: (event) => {
+        if (event.type === 'filter:set') {
+          throw new Error('sync telemetry error');
+        }
+
+        return Promise.reject(new Error('async telemetry error'));
+      },
+    });
+
+    expect(() => component.setFilters([{ columnKey: 'name', operator: 'contains', value: 'A' }])).not.toThrow();
+    expect(() => component.toggleSort('name')).not.toThrow();
+    expect(() => component.selectRowByKey('u1')).not.toThrow();
+
+    await Promise.resolve();
+  });
 });

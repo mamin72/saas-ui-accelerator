@@ -91,7 +91,7 @@ These are the full target modules for a complete SaaS-ready library.
 2. [x] Add server-side mode adapters (sorting/filtering/pagination request model).
 3. [x] Add audit metadata hooks for row actions.
 4. [x] Add permission-aware action predicates.
-5. Add usage telemetry hooks for component interaction events.
+5. [x] Add usage telemetry hooks for component interaction events.
 
 ## Phase 4: Production Hardening
 
@@ -118,6 +118,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 11. [x] Add server-side mode adapters (sorting/filtering/pagination request model).
 12. [x] Add audit metadata hooks for row actions.
 13. [x] Add permission-aware action predicates.
+14. [x] Add usage telemetry hooks for component interaction events.
 
 ## Definition Of Done (for each item)
 
@@ -130,8 +131,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 14: Add usage telemetry hooks for component interaction events.
+- Item 15: Add benchmark suite for large datasets.
 - Scope for next implementation:
-- Add event hooks for filtering/sorting/pagination/selection interactions.
-- Include lightweight metadata payloads and timestamps.
-- Keep telemetry hooks optional and side-effect safe.
+- Add benchmark harness for sorting, filtering, pagination, and selection operations.
+- Capture timing and throughput metrics for realistic data volumes.
+- Keep benchmark tooling deterministic and CI-friendly.

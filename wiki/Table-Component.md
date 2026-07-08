@@ -305,6 +305,35 @@ Context capabilities:
 - `hasAllPermissions(permissions)`
 - `actionId`, `row`, `rowKey`
 
+## Usage Telemetry Hooks
+
+The table component supports optional telemetry hooks for filtering, sorting, pagination, and selection interactions.
+
+```ts
+const table = new JsonTableComponent({
+  data: [{ id: 'u1', name: 'Alice' }],
+  columns: [{ key: 'name', header: 'Name', dataType: 'text', sortable: true }],
+  rowKey: 'id',
+  telemetry: (event) => {
+    console.log(event.type, event.timestamp, event.metadata);
+  }
+});
+
+table.setFilters([{ columnKey: 'name', operator: 'contains', value: 'A' }]);
+table.toggleSort('name');
+table.setPagination({ pageIndex: 0, pageSize: 25 });
+table.selectRowByKey('u1');
+```
+
+Supported interaction categories:
+
+- Filtering (`filter:set`, `filter:clear`)
+- Sorting (`sort:set-rules`, `sort:append`, `sort:clear`, `sort:toggle`)
+- Pagination (`pagination:set`, `pagination:clear`, `pagination:set-index`, `pagination:set-size`)
+- Selection (`selection:*` event family)
+
+Telemetry callbacks are observational only: failures are swallowed to avoid impacting table behavior.
+
 ## Formatter Presets
 
 The package also exports reusable formatter preset helpers for common regional defaults.

@@ -206,11 +206,43 @@ export interface TableRowState {
   readonly cells: readonly TableCellState[];
 }
 
+export type TableTelemetryEventType =
+  | 'filter:set'
+  | 'filter:clear'
+  | 'sort:set-rules'
+  | 'sort:append'
+  | 'sort:clear'
+  | 'sort:toggle'
+  | 'pagination:set'
+  | 'pagination:clear'
+  | 'pagination:set-index'
+  | 'pagination:set-size'
+  | 'selection:set'
+  | 'selection:clear'
+  | 'selection:select-key'
+  | 'selection:deselect-key'
+  | 'selection:toggle-key'
+  | 'selection:select-row'
+  | 'selection:deselect-row'
+  | 'selection:toggle-row'
+  | 'selection:select-all'
+  | 'selection:select-all-filtered'
+  | 'selection:select-all-paginated';
+
+export interface TableTelemetryEvent<T extends Record<string, unknown>> {
+  readonly type: TableTelemetryEventType;
+  readonly timestamp: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly selectedRowKeys?: readonly TableRowKey[];
+  readonly row?: T;
+}
+
 export interface JsonTableComponentOptions<T extends Record<string, unknown>> {
   readonly data: string | readonly T[];
   readonly columns: readonly TableColumn<T>[];
   readonly actionColumn?: TableActionColumn<T>;
   readonly rowKey?: Extract<keyof T, string> | ((row: T, index: number) => TableRowKey);
+  readonly telemetry?: (event: TableTelemetryEvent<T>) => void | Promise<void>;
 }
 
 export class JsonTableComponent<T extends Record<string, unknown>> {
@@ -227,6 +259,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private readonly rowKeyResolver: (row: T, index: number) => TableRowKey;
   private selectedRowKeyTokens: Set<string>;
   private readonly savedViews: Map<string, TableSavedView<T>>;
+  private readonly telemetry: JsonTableComponentOptions<T>['telemetry'];
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
@@ -243,6 +276,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.buildRowKeyIndex();
     this.selectedRowKeyTokens = new Set();
     this.savedViews = new Map();
+    this.telemetry = options.telemetry;
   }
 
   public getHeaders(): readonly TableHeaderState[] {
@@ -275,12 +309,28 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
   public setSortRules(sortRules: readonly SortState[]): readonly SortState[] {
     this.sortState = this.normalizeSortRules(sortRules);
+    this.emitTelemetry({
+      type: 'sort:set-rules',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        sortRuleCount: this.sortState.length,
+      },
+    });
     return this.sortState;
   }
 
   public appendSort(columnKey: string, direction: TableSortDirection = 'asc'): readonly SortState[] {
     this.assertSortableColumn(columnKey);
     this.sortState = this.normalizeSortRules([...this.sortState, { columnKey, direction }]);
+    this.emitTelemetry({
+      type: 'sort:append',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        columnKey,
+        direction,
+        sortRuleCount: this.sortState.length,
+      },
+    });
     return this.sortState;
   }
 
@@ -294,11 +344,25 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     }
 
     this.filterState = [...filters];
+    this.emitTelemetry({
+      type: 'filter:set',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        filterCount: this.filterState.length,
+      },
+    });
     return this.filterState;
   }
 
   public clearFilters(): void {
     this.filterState = [];
+    this.emitTelemetry({
+      type: 'filter:clear',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        filterCount: 0,
+      },
+    });
   }
 
   public getSelectedRowKeys(): readonly TableRowKey[] {
@@ -343,18 +407,45 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     }
 
     this.selectedRowKeyTokens = tokens;
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:set',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public clearSelection(): void {
     this.selectedRowKeyTokens = new Set();
+    this.emitTelemetry({
+      type: 'selection:clear',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys: [],
+      metadata: {
+        selectedCount: 0,
+      },
+    });
   }
 
   public selectRowByKey(key: TableRowKey): readonly TableRowKey[] {
     const token = this.encodeRowKey(key);
     this.assertKnownRowToken(token, key);
     this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, token]);
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:select-key',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        key,
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public deselectRowByKey(key: TableRowKey): readonly TableRowKey[] {
@@ -362,7 +453,17 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     const next = new Set(this.selectedRowKeyTokens);
     next.delete(token);
     this.selectedRowKeyTokens = next;
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:deselect-key',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        key,
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public toggleRowSelectionByKey(key: TableRowKey): readonly TableRowKey[] {
@@ -376,7 +477,17 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     }
 
     this.selectedRowKeyTokens = next;
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:toggle-key',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        key,
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public isRowSelectedByKey(key: TableRowKey): boolean {
@@ -386,7 +497,17 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   public selectRow(row: T): readonly TableRowKey[] {
     const token = this.getRowTokenByRow(row);
     this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, token]);
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:select-row',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      row,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public deselectRow(row: T): readonly TableRowKey[] {
@@ -394,7 +515,17 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     const next = new Set(this.selectedRowKeyTokens);
     next.delete(token);
     this.selectedRowKeyTokens = next;
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:deselect-row',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      row,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public toggleRowSelection(row: T): readonly TableRowKey[] {
@@ -407,7 +538,17 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     }
 
     this.selectedRowKeyTokens = next;
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:toggle-row',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      row,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public isRowSelected(row: T): boolean {
@@ -416,19 +557,46 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
   public selectAllRows(): readonly TableRowKey[] {
     this.selectedRowKeyTokens = new Set(this.rows.map((row, index) => this.getRowToken(row, index)));
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:select-all',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public selectAllFilteredRows(): readonly TableRowKey[] {
     const tokens = this.getFilteredRows().map((row) => this.getRowTokenByRow(row));
     this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, ...tokens]);
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:select-all-filtered',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public selectAllPaginatedRows(): readonly TableRowKey[] {
     const tokens = this.getPaginatedRows().map((row) => this.getRowTokenByRow(row));
     this.selectedRowKeyTokens = new Set([...this.selectedRowKeyTokens, ...tokens]);
-    return this.getSelectedRowKeys();
+    const selectedRowKeys = this.getSelectedRowKeys();
+    this.emitTelemetry({
+      type: 'selection:select-all-paginated',
+      timestamp: new Date().toISOString(),
+      selectedRowKeys,
+      metadata: {
+        selectedCount: selectedRowKeys.length,
+      },
+    });
+    return selectedRowKeys;
   }
 
   public async executeBulkAction<TResult>(
@@ -521,6 +689,10 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   public setPagination(pagination: TablePaginationState | undefined): TablePaginationState | undefined {
     if (pagination == null) {
       this.paginationState = undefined;
+      this.emitTelemetry({
+        type: 'pagination:clear',
+        timestamp: new Date().toISOString(),
+      });
       return this.paginationState;
     }
 
@@ -530,11 +702,23 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       pageIndex: pagination.pageIndex,
       pageSize: pagination.pageSize,
     };
+    this.emitTelemetry({
+      type: 'pagination:set',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        pageIndex: this.paginationState.pageIndex,
+        pageSize: this.paginationState.pageSize,
+      },
+    });
     return this.paginationState;
   }
 
   public clearPagination(): void {
     this.paginationState = undefined;
+    this.emitTelemetry({
+      type: 'pagination:clear',
+      timestamp: new Date().toISOString(),
+    });
   }
 
   public createSavedView(): TableSavedView<T> {
@@ -602,6 +786,15 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       pageSize: current.pageSize,
     };
 
+    this.emitTelemetry({
+      type: 'pagination:set-index',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        pageIndex: this.paginationState.pageIndex,
+        pageSize: this.paginationState.pageSize,
+      },
+    });
+
     return this.paginationState;
   }
 
@@ -613,11 +806,27 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       pageSize,
     };
 
+    this.emitTelemetry({
+      type: 'pagination:set-size',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        pageIndex: this.paginationState.pageIndex,
+        pageSize: this.paginationState.pageSize,
+      },
+    });
+
     return this.paginationState;
   }
 
   public clearSort(): void {
     this.sortState = [];
+    this.emitTelemetry({
+      type: 'sort:clear',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        sortRuleCount: 0,
+      },
+    });
   }
 
   public toggleSort(columnKey: string): SortState | undefined {
@@ -629,6 +838,15 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     const current = this.sortState[0];
     if (current == null || current.columnKey !== columnKey) {
       this.sortState = [{ columnKey, direction: 'asc' }];
+      this.emitTelemetry({
+        type: 'sort:toggle',
+        timestamp: new Date().toISOString(),
+        metadata: {
+          columnKey,
+          direction: 'asc',
+          sortRuleCount: this.sortState.length,
+        },
+      });
       return this.sortState[0];
     }
 
@@ -637,7 +855,34 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       direction: current.direction === 'asc' ? 'desc' : 'asc',
     }];
 
+    this.emitTelemetry({
+      type: 'sort:toggle',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        columnKey,
+        direction: this.sortState[0]?.direction,
+        sortRuleCount: this.sortState.length,
+      },
+    });
+
     return this.sortState[0];
+  }
+
+  private emitTelemetry(event: TableTelemetryEvent<T>): void {
+    if (this.telemetry == null) {
+      return;
+    }
+
+    try {
+      const result = this.telemetry(event);
+      if (result instanceof Promise) {
+        void result.catch(() => {
+          // Telemetry hooks are observational and should never impact component behavior.
+        });
+      }
+    } catch {
+      // Telemetry hooks are observational and should never impact component behavior.
+    }
   }
 
   public getSortedRows(): T[] {
