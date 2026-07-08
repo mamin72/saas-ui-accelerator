@@ -3,6 +3,7 @@
 For runnable access-control examples, see [Access Control Primitives](Access-Control-Primitives).
 For runnable resilience examples, see [Resilience Primitives](Resilience-Primitives).
 For runnable localization examples, see [Localization Primitives](Localization-Primitives).
+For runnable auth examples, see [Auth Kit](Auth-Kit).
 
 ## sortByRules
 
@@ -676,3 +677,63 @@ createOptimisticRecoveryController<TValue, TError>(input: {
 ```
 
 Creates lifecycle helpers for optimistic commit, rollback, recovery planning, and reset flows.
+
+## Auth Kit Primitives
+
+### Sign-In and Sign-Up Contracts
+
+```ts
+createSignInFormSchema(...)
+createSignUpFormSchema(...)
+createAuthSubmissionContract(...)
+validateAuthFormValues(...)
+mapAuthValidationIssuesToFieldErrors(...)
+mapAuthProviderError(...)
+```
+
+Typed form schema, submission, and validation helpers for sign-in/sign-up flows.
+
+### Password Recovery and Magic Link
+
+```ts
+createPasswordRecoveryRequestContract(...)
+createMagicLinkRequestContract(...)
+issueAuthTokenLifecycle(...)
+evaluateAuthTokenExpiry(...)
+consumeAuthTokenLifecycle(...)
+executeRecoveryOrMagicLinkFlow(...)
+```
+
+Recovery request contracts and token lifecycle orchestration helpers with callback hooks.
+
+### Social Login and MFA
+
+```ts
+createSocialLoginAdapterContract(...)
+startSocialLogin(...)
+finishSocialLogin(...)
+createMfaChallengeContract(...)
+evaluateMfaChallenge(...)
+registerMfaAttempt(...)
+verifyMfaChallenge(...)
+```
+
+Pluggable social login adapter contracts and MFA challenge primitives.
+
+### Session Guards and Tenant Auth Access
+
+```ts
+createRouteSessionGuardContract(...)
+createComponentSessionGuardContract(...)
+evaluateSessionGuard(...)
+evaluateSessionGuardWithRevalidation(...)
+createTenantAuthIdentity(...)
+createTenantAuthContext(...)
+resolveActiveTenantIdentity(...)
+hasRequiredRoles(...)
+hasRequiredPermissions(...)
+evaluateTenantAuthAccess(...)
+createTenantAuthAccessEvaluator(...)
+```
+
+Route/component session guard primitives and tenant-aware role/permission evaluator helpers.

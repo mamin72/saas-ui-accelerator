@@ -7,6 +7,7 @@
 - [Access Control Primitives](Access-Control-Primitives)
 - [Resilience Primitives](Resilience-Primitives)
 - [Localization Primitives](Localization-Primitives)
+- [Auth Kit](Auth-Kit)
 - [Data Formats](Data-Formats)
 - [Table Component](Table-Component)
 - [Licensing](Licensing)

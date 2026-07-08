@@ -229,11 +229,11 @@ Work strictly from top to bottom. Do not start the next item until the current i
 48. [x] Phase 5/Foundation Track 5 chunk 5: add tests, docs, and examples for localization primitives.
 49. [x] Phase 5/Foundation Track 5 completion gate: all chunk outputs integrated and validated.
 50. [x] Phase 6/Auth Kit chunk 1: define sign-in/sign-up form schemas, typed submission contracts, and validation/error mapping helpers.
-51. [ ] Phase 6/Auth Kit chunk 2: implement password recovery and magic-link workflows with token lifecycle, expiry handling, and typed callbacks.
-52. [ ] Phase 6/Auth Kit chunk 3: add social login adapter contracts and MFA challenge primitives with pluggable provider interfaces.
-53. [ ] Phase 6/Auth Kit chunk 4: implement route/component session guards with unauthenticated fallback and revalidation behavior.
-54. [ ] Phase 6/Auth Kit chunk 5: add role/permission evaluators and tenant-aware auth context composition utilities.
-55. [ ] Phase 6/Auth Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
+51. [x] Phase 6/Auth Kit chunk 2: implement password recovery and magic-link workflows with token lifecycle, expiry handling, and typed callbacks.
+52. [x] Phase 6/Auth Kit chunk 3: add social login adapter contracts and MFA challenge primitives with pluggable provider interfaces.
+53. [x] Phase 6/Auth Kit chunk 4: implement route/component session guards with unauthenticated fallback and revalidation behavior.
+54. [x] Phase 6/Auth Kit chunk 5: add role/permission evaluators and tenant-aware auth context composition utilities.
+55. [x] Phase 6/Auth Kit release-ready gate: integrate chunks 1-5, export public APIs, and validate with integration tests, docs, and usage examples.
 56. [ ] Phase 7/Billing Kit chunk 1: define typed plan catalog models, comparison metadata, and pricing presentation helpers.
 57. [ ] Phase 7/Billing Kit chunk 2: implement checkout flow contracts and provider-agnostic payment adapter interfaces with lifecycle events.
 58. [ ] Phase 7/Billing Kit chunk 3: add customer portal launcher contracts and billing account action primitives with capability checks.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 33: Phase 5/Foundation Track 3 chunk 2 - define component and action-level policy primitives.
+- Item 56: Phase 7/Billing Kit chunk 1 - define typed plan catalog models, comparison metadata, and pricing presentation helpers.
 - Scope for next implementation:
-- Define typed component-level policy contracts and action-level guard models.
-- Add composition helpers for combining policy predicates and guard outcomes.
-- Add tests and README examples for component/action policy enforcement.
+- Define typed plan catalog contracts, billing cycle metadata, and feature comparison fields.
+- Add normalization helpers for pricing display and interval labeling.
+- Add tests and README examples for plan selection and comparison workflows.

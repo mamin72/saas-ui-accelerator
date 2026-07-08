@@ -96,22 +96,26 @@ runtime.component.dataGridPro;
 - Locale-aware number and currency formatting helpers (`createLocaleNumberFormatterContract`, `createLocaleCurrencyFormatterContract`, `formatLocaleNumber`, `formatLocaleCurrency`)
 - Timezone-safe date formatting and parsing helpers (`createLocaleDateTimeFormatterContract`, `createLocaleDateParseContract`, `formatLocaleDateTime`, `parseZonedDateTime`, `convertDateTimeToTimeZone`)
 - Locale-aware sort and filter helpers (`createLocaleTextSortContract`, `createLocaleFilterContract`, `sortByLocaleRules`, `evaluateLocaleFilterPredicate`)
+- Auth sign-in/sign-up contracts with typed validation and provider-error mapping (`createSignInFormSchema`, `createSignUpFormSchema`, `createAuthSubmissionContract`, `validateAuthFormValues`, `mapAuthValidationIssuesToFieldErrors`, `mapAuthProviderError`)
+- Auth recovery and magic-link lifecycle helpers (`createPasswordRecoveryRequestContract`, `createMagicLinkRequestContract`, `issueAuthTokenLifecycle`, `evaluateAuthTokenExpiry`, `consumeAuthTokenLifecycle`, `executeRecoveryOrMagicLinkFlow`)
+- Auth social login and MFA primitives (`createSocialLoginAdapterContract`, `startSocialLogin`, `finishSocialLogin`, `createMfaChallengeContract`, `evaluateMfaChallenge`, `registerMfaAttempt`, `verifyMfaChallenge`)
+- Auth session guard primitives (`createRouteSessionGuardContract`, `createComponentSessionGuardContract`, `evaluateSessionGuard`, `evaluateSessionGuardWithRevalidation`)
+- Tenant-aware auth context composition and access evaluators (`createTenantAuthIdentity`, `createTenantAuthContext`, `resolveActiveTenantIdentity`, `hasRequiredRoles`, `hasRequiredPermissions`, `evaluateTenantAuthAccess`, `createTenantAuthAccessEvaluator`)
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
 ### Planned (Future)
 
 See [roadmap.md](roadmap.md) for phased delivery details. Summary of next major component tracks:
 
-1. Auth Kit
-2. Billing Kit
-3. Tenant and Org Kit
-4. Data Grid Pro expansion
-5. Forms and Validation Kit
-6. Workflow and Automation UI
-7. Analytics and Dashboard Kit
-8. Notifications and Inbox Kit
-9. Admin and Ops Console Kit
-10. Onboarding and Adoption Kit
+1. Billing Kit
+2. Tenant and Org Kit
+3. Data Grid Pro expansion
+4. Forms and Validation Kit
+5. Workflow and Automation UI
+6. Analytics and Dashboard Kit
+7. Notifications and Inbox Kit
+8. Admin and Ops Console Kit
+9. Onboarding and Adoption Kit
 
 ### README Maintenance Rule
 
