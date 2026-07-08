@@ -10,6 +10,23 @@ permissions:
   contents: read
 
 jobs:
+  classify-changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.filter.outputs.docs_only }}
+
+    steps:
+      - name: Detect docs-only changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docs_only:
+              - '**/*.md'
+              - 'wiki/**'
+              - '.github/*.md'
+
   pr-governance-check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -68,25 +85,36 @@ jobs:
   quality-check:
     name: quality-check
     runs-on: ubuntu-latest
+    needs: [classify-changes]
 
     steps:
+      - name: Docs-only fast-path
+        if: needs.classify-changes.outputs.docs_only == 'true'
+        run: echo "Docs-only PR detected. Skipping heavy quality-check run."
+
       - name: Checkout
+        if: needs.classify-changes.outputs.docs_only != 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: needs.classify-changes.outputs.docs_only != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
+        if: needs.classify-changes.outputs.docs_only != 'true'
         run: npm ci
 
       - name: Run quality checks
+        if: needs.classify-changes.outputs.docs_only != 'true'
         run: npm run quality:check
 
   quality-check-matrix:
     name: quality-check-matrix (node ${{ matrix.node-version }})
+    if: github.event_name != 'pull_request' || needs.classify-changes.outputs.docs_only != 'true'
+    needs: [classify-changes]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -111,20 +139,29 @@ jobs:
 
   release-policy-check:
     if: github.event_name == 'pull_request'
+    needs: [classify-changes]
     runs-on: ubuntu-latest
 
     steps:
+      - name: Docs-only fast-path
+        if: needs.classify-changes.outputs.docs_only == 'true'
+        run: echo "Docs-only PR detected. Skipping release-policy-check run."
+
       - name: Checkout
+        if: needs.classify-changes.outputs.docs_only != 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: needs.classify-changes.outputs.docs_only != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
+        if: needs.classify-changes.outputs.docs_only != 'true'
         run: npm ci
 
       - name: Validate version and changelog policy
+        if: needs.classify-changes.outputs.docs_only != 'true'
         run: npm run release:policy:check

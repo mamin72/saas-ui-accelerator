@@ -1,0 +1,36 @@
+name: Auto Merge Docs PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge-docs:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Classify docs-only changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docs_only:
+              - '**/*.md'
+              - 'wiki/**'
+              - '.github/*.md'
+
+      - name: Checkout repository
+        if: steps.filter.outputs.docs_only == 'true'
+        uses: actions/checkout@v4
+
+      - name: Enable auto-merge for docs-only PRs
+        if: steps.filter.outputs.docs_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --auto --squash

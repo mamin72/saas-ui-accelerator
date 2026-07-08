@@ -10,20 +10,20 @@ The package now exposes a unified namespace so you can consume all kits from one
 import { component } from "saas-ui-accelerator";
 
 const auth = component.authKit.createContext({
-	tenantId: "tenant-1",
-	userId: "user-1",
-	roles: ["admin"],
-	permissions: ["billing:manage"]
+  tenantId: "tenant-1",
+  userId: "user-1",
+  roles: ["admin"],
+  permissions: ["billing:manage"]
 });
 
 const hasBilling = component.billingKit.createEntitlementChecker({
-	features: ["billing", "analytics"]
+  features: ["billing", "analytics"]
 });
 
 const table = component.dataGridPro.createTable({
-	data: [{ id: "1", name: "Alice" }],
-	columns: [{ key: "name", header: "Name", dataType: "text" }],
-	rowKey: "id"
+  data: [{ id: "1", name: "Alice" }],
+  columns: [{ key: "name", header: "Name", dataType: "text" }],
+  rowKey: "id"
 });
 ```
 
@@ -43,7 +43,7 @@ Progressive roadmap enablement:
 import { createEnabledComponent } from "saas-ui-accelerator";
 
 const runtime = createEnabledComponent({
-	enabledKits: ["data-grid-pro", "foundation-primitives"]
+  enabledKits: ["data-grid-pro", "foundation-primitives"]
 });
 
 runtime.isEnabled("data-grid-pro"); // true
@@ -93,6 +93,8 @@ See [roadmap.md](roadmap.md) for phased delivery details. Summary of next major 
 5. Forms and Validation Kit
 6. Workflow and Automation UI
 7. Analytics and Dashboard Kit
+8. Notifications and Inbox Kit
+9. Admin and Ops Console Kit
 10. Onboarding and Adoption Kit
 
 ### README Maintenance Rule
@@ -126,8 +128,8 @@ const sortedArray = sortByRules(items, rules);
 
 // Format-aware parsing + sorting
 const sortedFromCsv = parseAndSort(csvText, {
-	format: "csv",
-	rules,
+  format: "csv",
+  rules,
 });
 ```
 
@@ -137,8 +139,8 @@ For stream inputs:
 import { parseAndSortFromStream } from "saas-ui-accelerator";
 
 const sorted = await parseAndSortFromStream(stream, {
-	format: "jsonl",
-	rules,
+  format: "jsonl",
+  rules,
 });
 ```
 
@@ -151,13 +153,13 @@ supports click-style header toggle sorting.
 import { JsonTableComponent, currencyPacks } from "saas-ui-accelerator";
 
 const table = new JsonTableComponent({
-	data: jsonString,
-	columns: [
-		{ key: "name", header: "Name", dataType: "text", sortable: true },
-		{ key: "amount", header: "Amount", dataType: "currency", currencyCode: "USD" },
-		{ key: "createdUtc", header: "Created", dataType: "date", temporalType: "datetime", convertUtcToClientLocal: true },
-		{ key: "active", header: "Active", dataType: "boolean", booleanDisplay: "icon" }
-	]
+  data: jsonString,
+  columns: [
+    { key: "name", header: "Name", dataType: "text", sortable: true },
+    { key: "amount", header: "Amount", dataType: "currency", currencyCode: "USD" },
+    { key: "createdUtc", header: "Created", dataType: "date", temporalType: "datetime", convertUtcToClientLocal: true },
+    { key: "active", header: "Active", dataType: "boolean", booleanDisplay: "icon" }
+  ]
 });
 
 table.toggleSort("name");
@@ -165,8 +167,8 @@ const headers = table.getHeaders();
 const rows = table.getTableRows();
 
 table.setSortRules([
-	{ columnKey: "createdUtc", direction: "desc" },
-	{ columnKey: "name", direction: "asc" }
+  { columnKey: "createdUtc", direction: "desc" },
+  { columnKey: "name", direction: "asc" }
 ]);
 
 table.appendSort("amount", "desc");
@@ -182,12 +184,12 @@ const pageInfo = table.getPageInfo();
 table.setColumnVisibility("amount", false);
 table.toggleColumnVisibility("name");
 table.setColumnVisibilityMap({
-	name: true,
-	age: true,
-	score: true,
-	amount: false,
-	createdUtc: true,
-	active: true
+  name: true,
+  age: true,
+  score: true,
+  amount: false,
+  createdUtc: true,
+  active: true
 });
 
 const visibility = table.getColumnVisibility();
@@ -199,10 +201,10 @@ const selectedRows = table.getSelectedRows();
 const selectionInfo = table.getSelectionInfo();
 
 const bulkResult = await table.executeBulkAction((context) => {
-	return {
-		count: context.selectedRows.length,
-		selectedKeys: context.selectedRowKeys
-	};
+  return {
+    count: context.selectedRows.length,
+    selectedKeys: context.selectedRowKeys
+  };
 });
 
 const csvAll = table.exportCsv();
@@ -210,15 +212,15 @@ const csvVisibleOnly = table.exportCsv({ scope: "sorted", delimiter: ";" });
 const csvSelected = table.exportCsv({ scope: "selected", includeHeaders: false });
 
 const eurAmountColumn = {
-	key: "amount",
-	header: "Amount",
-	...currencyPacks.eur
+  key: "amount",
+  header: "Amount",
+  ...currencyPacks.eur
 };
 
 
 table.setFilters([
-	{ columnKey: "name", operator: "contains", value: "ali" },
-	{ columnKey: "age", operator: "gte", value: 30 }
+  { columnKey: "name", operator: "contains", value: "ali" },
+  { columnKey: "age", operator: "gte", value: 30 }
 ]);
 
 const filteredRows = table.getFilteredRows();
@@ -318,9 +320,9 @@ Server request example:
 
 ```ts
 const request = createServerTableRequest({
-	sortRules: table.getSortRules(),
-	filters: table.getFilters(),
-	pagination: table.getPagination()
+  sortRules: table.getSortRules(),
+  filters: table.getFilters(),
+  pagination: table.getPagination()
 });
 
 // request => { sort: [...], filters: [...], pagination: { pageIndex, pageSize, offset, limit } }
@@ -359,30 +361,30 @@ Schema-driven builder example:
 
 ```ts
 import {
-	createColumnSchemaBuilder,
-	createTypedTableComponent,
-	defineTableColumns
+  createColumnSchemaBuilder,
+  createTypedTableComponent,
+  defineTableColumns
 } from "saas-ui-accelerator";
 
 type UserRow = {
-	id: string;
-	fullName: string;
-	age: number;
-	active: boolean;
+  id: string;
+  fullName: string;
+  age: number;
+  active: boolean;
 };
 
 const schema = createColumnSchemaBuilder<UserRow>();
 
 const columns = defineTableColumns(
-	schema.text("fullName", "Full Name", { sortable: true }),
-	schema.number("age", "Age", { sortable: true }),
-	schema.boolean("active", "Active")
+  schema.text("fullName", "Full Name", { sortable: true }),
+  schema.number("age", "Age", { sortable: true }),
+  schema.boolean("active", "Active")
 );
 
 const table = createTypedTableComponent({
-	data: [{ id: "u1", fullName: "Alice", age: 31, active: true }],
-	columns,
-	rowKey: "id"
+  data: [{ id: "u1", fullName: "Alice", age: 31, active: true }],
+  columns,
+  rowKey: "id"
 });
 ```
 
@@ -392,21 +394,21 @@ Starter template example:
 import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "saas-ui-accelerator";
 
 const tableTemplate = createTableStarterTemplate({
-	data: [{ id: 1, fullName: "Alice", active: true }],
-	rowKey: "id",
-	initialSortRules: [{ columnKey: "fullName", direction: "asc" }]
+  data: [{ id: 1, fullName: "Alice", active: true }],
+  rowKey: "id",
+  initialSortRules: [{ columnKey: "fullName", direction: "asc" }]
 });
 
 const table = tableTemplate.createComponent();
 
 const sorted = parseAndSortWithStarterTemplate("name,amount\nA,2\nB,10", {
-	format: "csv",
-	sortBy: "amount",
-	direction: "desc",
-	mapper: (record) => ({
-		name: String(record.name),
-		amount: Number(record.amount)
-	})
+  format: "csv",
+  sortBy: "amount",
+  direction: "desc",
+  mapper: (record) => ({
+    name: String(record.name),
+    amount: Number(record.amount)
+  })
 });
 ```
 
@@ -421,12 +423,11 @@ const amountColumn = { key: "amount", header: "Amount", ...currencyPacks.usd };
 
 // Action example (default MUI actions + routing)
 const actionColumn = createDefaultMuiActionColumn({
-	router: { navigate: (to) => router.navigate(to) },
-	getViewRoute: (row) => `/users/${row.id}`,
-	getEditRoute: (row) => `/users/${row.id}/edit`
+  router: { navigate: (to) => router.navigate(to) },
+  getViewRoute: (row) => `/users/${row.id}`,
+  getEditRoute: (row) => `/users/${row.id}/edit`
 });
 ```
-
 
 Action column support:
 
@@ -443,19 +444,19 @@ Permission-aware predicate example:
 import { andActionPredicates, requireAllPermissions, requirePermission } from "saas-ui-accelerator";
 
 const actionColumn = createDefaultMuiActionColumn({
-	router: { navigate: (to) => router.navigate(to) },
-	permissions: ['users:view', 'users:archive'],
-	getArchiveRoute: (row) => `/users/${row.id}/archive`
+  router: { navigate: (to) => router.navigate(to) },
+  permissions: ['users:view', 'users:archive'],
+  getArchiveRoute: (row) => `/users/${row.id}/archive`
 });
 
 const archiveAction = {
-	id: 'archive' as const,
-	route: (row: { id: string }) => `/users/${row.id}/archive`,
-	visible: (_row: { id: string }, context) =>
-		andActionPredicates(
-			requirePermission('users:view'),
-			requireAllPermissions(['users:archive'])
-		)(context),
+  id: 'archive' as const,
+  route: (row: { id: string }) => `/users/${row.id}/archive`,
+  visible: (_row: { id: string }, context) =>
+    andActionPredicates(
+      requirePermission('users:view'),
+      requireAllPermissions(['users:archive'])
+    )(context),
 };
 ```
 
@@ -463,12 +464,12 @@ Action audit hook example:
 
 ```ts
 const actionColumn = createDefaultMuiActionColumn({
-	router: { navigate: (to) => router.navigate(to) },
-	getViewRoute: (row) => `/users/${row.id}`,
-	onAudit: (event) => {
-		// event includes actionId, outcome, row, rowKey, timestamp, route, and status fields
-		console.log(event);
-	}
+  router: { navigate: (to) => router.navigate(to) },
+  getViewRoute: (row) => `/users/${row.id}`,
+  onAudit: (event) => {
+    // event includes actionId, outcome, row, rowKey, timestamp, route, and status fields
+    console.log(event);
+  }
 });
 ```
 
@@ -476,12 +477,12 @@ Usage telemetry hook example:
 
 ```ts
 const table = new JsonTableComponent({
-	data: [{ id: "u1", name: "Alice" }],
-	columns: [{ key: "name", header: "Name", dataType: "text", sortable: true }],
-	rowKey: "id",
-	telemetry: (event) => {
-		console.log(event.type, event.timestamp, event.metadata);
-	}
+  data: [{ id: "u1", name: "Alice" }],
+  columns: [{ key: "name", header: "Name", dataType: "text", sortable: true }],
+  rowKey: "id",
+  telemetry: (event) => {
+    console.log(event.type, event.timestamp, event.metadata);
+  }
 });
 
 table.setFilters([{ columnKey: "name", operator: "contains", value: "A" }]);
@@ -496,12 +497,12 @@ Telemetry callbacks are observational and side-effect safe: callback failures ar
 import { JsonTableComponent, createDefaultMuiActionColumn } from "saas-ui-accelerator";
 
 const actionColumn = createDefaultMuiActionColumn({
-	router: { navigate: (to) => router.navigate(to) },
-	getViewRoute: (row) => `/users/${row.id}`,
-	getEditRoute: (row) => `/users/${row.id}/edit`,
-	getArchiveRoute: (row) => `/users/${row.id}/archive`,
-	getDeleteRoute: (row) => `/users/${row.id}/delete`,
-	confirm: ({ message }) => window.confirm(message)
+  router: { navigate: (to) => router.navigate(to) },
+  getViewRoute: (row) => `/users/${row.id}`,
+  getEditRoute: (row) => `/users/${row.id}/edit`,
+  getArchiveRoute: (row) => `/users/${row.id}/archive`,
+  getDeleteRoute: (row) => `/users/${row.id}/delete`,
+  confirm: ({ message }) => window.confirm(message)
 });
 
 const table = new JsonTableComponent({ data: jsonString, columns, actionColumn });
@@ -538,7 +539,8 @@ This project uses a dual-license model:
 See [LICENSE](LICENSE) and [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) for details.
 
 For commercial licensing requests, contact the repository owner:
-- https://github.com/mamin72
+
+[github.com/mamin72](https://github.com/mamin72)
 
 ## Setup
 
@@ -652,4 +654,3 @@ Publish to GitHub wiki:
 ```powershell
 pwsh ./scripts/publish-wiki.ps1
 ```
-

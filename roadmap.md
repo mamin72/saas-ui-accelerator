@@ -21,52 +21,24 @@ This roadmap is designed for incremental delivery: complete one scoped item full
 
 These are the full target modules for a complete SaaS-ready library.
 
-1. Auth Kit
-- Sign in, sign up, forgot password, magic link, social login, MFA, session guard, role and permission guards, tenant-aware auth context.
-
-2. Billing Kit
-- Plans, checkout, customer portal launcher, usage metering helpers, invoice list, entitlement checks, trial management, upgrade and downgrade flows.
-
-3. Tenant and Org Kit
-- Organization switcher, invite members, team roles, seat management, workspace settings, tenant resolver, tenant-safe route guards.
-
-4. Data Grid Pro
-- Advanced filtering, faceted search, saved views, server-side pagination, column pinning, column visibility, row selection, bulk actions, CSV export, inline edit.
-
-5. Forms and Validation Kit
-- Schema-driven form builder, async validation, dependent fields, autosave drafts, dirty-state guards, error summary, file upload with retry.
-
-6. Workflow and Automation UI
-- Rule builder, trigger-action editor, cron scheduler UI, webhook tester, execution log viewer, retry and replay controls.
-
-7. Analytics and Dashboard Kit
-- KPI cards, time-series charts, cohort tables, funnel chart, retention chart, configurable dashboard layout with saved presets.
-
-8. Notifications and Inbox Kit
-- Toast system, in-app notification center, templates, delivery channels, preferences center, unread counters, actionable notifications.
-
-9. Admin and Ops Console Kit
-- Feature flags UI, user impersonation banner, audit timeline, system health panel, support tools, API key management.
-
-10. Onboarding and Adoption Kit
-- Guided tours, checklist widget, empty-state templates, contextual help panel, feedback widget, NPS and CSAT components.
+- Auth Kit: Sign in, sign up, forgot password, magic link, social login, MFA, session guard, role and permission guards, tenant-aware auth context.
+- Billing Kit: Plans, checkout, customer portal launcher, usage metering helpers, invoice list, entitlement checks, trial management, upgrade and downgrade flows.
+- Tenant and Org Kit: Organization switcher, invite members, team roles, seat management, workspace settings, tenant resolver, tenant-safe route guards.
+- Data Grid Pro: Advanced filtering, faceted search, saved views, server-side pagination, column pinning, column visibility, row selection, bulk actions, CSV export, inline edit.
+- Forms and Validation Kit: Schema-driven form builder, async validation, dependent fields, autosave drafts, dirty-state guards, error summary, file upload with retry.
+- Workflow and Automation UI: Rule builder, trigger-action editor, cron scheduler UI, webhook tester, execution log viewer, retry and replay controls.
+- Analytics and Dashboard Kit: KPI cards, time-series charts, cohort tables, funnel chart, retention chart, configurable dashboard layout with saved presets.
+- Notifications and Inbox Kit: Toast system, in-app notification center, templates, delivery channels, preferences center, unread counters, actionable notifications.
+- Admin and Ops Console Kit: Feature flags UI, user impersonation banner, audit timeline, system health panel, support tools, API key management.
+- Onboarding and Adoption Kit: Guided tours, checklist widget, empty-state templates, contextual help panel, feedback widget, NPS and CSAT components.
 
 ## Foundation Tracks (Required Across All Phases)
 
-1. Design tokens and theming
-- Brand packs, semantic color tokens, density modes, RTL, dark/light, high-contrast, white-label support.
-
-2. Data and state primitives
-- Query hooks, cache adapters, optimistic updates, offline-friendly patterns, mutation state primitives.
-
-3. Access control primitives
-- Page, component, action, and field-level gates with tenant scoping.
-
-4. Error and resilience primitives
-- Error boundaries, retry wrappers, fallback views, skeletons, optimistic rollback helpers.
-
-5. Internationalization and localization
-- Message formatting, number and currency formatting, timezone-safe date handling, locale-aware sort and filter.
+- Design tokens and theming: Brand packs, semantic color tokens, density modes, RTL, dark/light, high-contrast, white-label support.
+- Data and state primitives: Query hooks, cache adapters, optimistic updates, offline-friendly patterns, mutation state primitives.
+- Access control primitives: Page, component, action, and field-level gates with tenant scoping.
+- Error and resilience primitives: Error boundaries, retry wrappers, fallback views, skeletons, optimistic rollback helpers.
+- Internationalization and localization: Message formatting, number and currency formatting, timezone-safe date handling, locale-aware sort and filter.
 
 ## Phase 1: Data Grid Essentials
 
@@ -140,4 +112,3 @@ Work strictly from top to bottom. Do not start the next item until the current i
 - Add migration guide template for breaking and non-breaking changes.
 - Add examples for API renames, deprecations, and behavioral changes.
 - Include checklist-driven migration validation steps.
-
