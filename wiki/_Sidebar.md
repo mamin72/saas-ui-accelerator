@@ -9,4 +9,3 @@
 - [Table Component](Table-Component)
 - [Licensing](Licensing)
 - [FAQ](FAQ)
-
