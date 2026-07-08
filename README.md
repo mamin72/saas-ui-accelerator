@@ -17,6 +17,7 @@ Reusable TypeScript sorting component library.
 - CSV export utility (`exportCsv` with all/filtered/sorted/paginated/selected scopes)
 - Formatter preset helpers (`currencyPacks`, `localePacks`, `timezonePacks`, `createCurrencyPreset`, `createDateFormatterPreset`, `createDateTimeFormatterPreset`, `createTimezonePreset`)
 - Validation helpers for column configs, row keys, delimiter checks, and supported format errors
+- Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -235,6 +236,53 @@ Validation helpers:
 - `assertTableColumnConfig(column)`
 - `assertValidRowKeyValue(rowKey, value)`
 - `assertSupportedFormat(format, supportedFormats)`
+
+Starter templates:
+
+- `createTableStarterTemplate(options)`
+- `createParseAndSortStarterTemplate(options)`
+- `parseAndSortWithStarterTemplate(input, options)`
+
+Starter template example:
+
+```ts
+import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "sort_component";
+
+const tableTemplate = createTableStarterTemplate({
+	data: [{ id: 1, fullName: "Alice", active: true }],
+	rowKey: "id",
+	initialSortRules: [{ columnKey: "fullName", direction: "asc" }]
+});
+
+const table = tableTemplate.createComponent();
+
+const sorted = parseAndSortWithStarterTemplate("name,amount\nA,2\nB,10", {
+	format: "csv",
+	sortBy: "amount",
+	direction: "desc",
+	mapper: (record) => ({
+		name: String(record.name),
+		amount: Number(record.amount)
+	})
+});
+```
+
+Copy-paste examples:
+
+```ts
+// Selector example (derived sortable value)
+const amountRule = { id: "amount", direction: "desc", selector: (row) => Number(row.amount) };
+
+// Formatter example (currency preset on a column)
+const amountColumn = { key: "amount", header: "Amount", ...currencyPacks.usd };
+
+// Action example (default MUI actions + routing)
+const actionColumn = createDefaultMuiActionColumn({
+	router: { navigate: (to) => router.navigate(to) },
+	getViewRoute: (row) => `/users/${row.id}`,
+	getEditRoute: (row) => `/users/${row.id}/edit`
+});
+```
 
 
 Action column support:

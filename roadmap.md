@@ -83,7 +83,7 @@ These are the full target modules for a complete SaaS-ready library.
 2. Add stronger TypeScript inference for row and column contracts.
 3. [x] Add preset formatters (currency packs, locale packs, timezone helpers).
 4. [x] Add better error messages and validation utilities.
-5. Add starter templates and copy-paste examples.
+5. [x] Add starter templates and copy-paste examples.
 
 ## Phase 3: SaaS Accelerators
 
@@ -113,6 +113,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 6. [x] CSV export utility.
 7. [x] Add preset formatters (currency packs, locale packs, timezone helpers).
 8. [x] Add better error messages and validation utilities.
+9. [x] Add starter templates and copy-paste examples.
 
 ## Definition Of Done (for each item)
 
@@ -125,8 +126,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 9: Add starter templates and copy-paste examples.
+- Item 10: Add saved views model (filters, sort, visible columns, page size).
 - Scope for next implementation:
-- Add starter templates for common table and parser setups.
-- Add copy-paste examples for selectors, formatters, and actions.
-- Keep examples aligned with the current public API.
+- Add a persisted view model for filters, sort rules, visibility, and pagination size.
+- Add apply/save/load APIs that are deterministic and typed.
+- Ensure saved views can round-trip cleanly through table state.

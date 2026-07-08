@@ -247,6 +247,55 @@ Helpers:
 - `assertValidRowKeyValue(rowKey, value)`
 - `assertSupportedFormat(format, supportedFormats)`
 
+## Starter Templates
+
+Use starter templates for fast table and parse+sort bootstrapping.
+
+```ts
+import { createTableStarterTemplate, parseAndSortWithStarterTemplate } from "sort_component";
+
+const tableTemplate = createTableStarterTemplate({
+  data: [{ id: 1, fullName: "Alice", active: true }],
+  rowKey: "id",
+  initialSortRules: [{ columnKey: "fullName", direction: "asc" }]
+});
+
+const table = tableTemplate.createComponent();
+
+const sorted = parseAndSortWithStarterTemplate("name,amount\nA,2\nB,10", {
+  format: "csv",
+  sortBy: "amount",
+  direction: "desc",
+  mapper: (record) => ({
+    name: String(record.name),
+    amount: Number(record.amount)
+  })
+});
+```
+
+Helpers:
+
+- `createTableStarterTemplate(options)`
+- `createParseAndSortStarterTemplate(options)`
+- `parseAndSortWithStarterTemplate(input, options)`
+
+## Copy-Paste Examples
+
+```ts
+// Selector example
+const amountRule = { id: "amount", direction: "desc", selector: (row) => Number(row.amount) };
+
+// Formatter example
+const amountColumn = { key: "amount", header: "Amount", ...currencyPacks.usd };
+
+// Action example
+const actionColumn = createDefaultMuiActionColumn({
+  router: { navigate: (to) => router.navigate(to) },
+  getViewRoute: (row) => `/users/${row.id}`,
+  getEditRoute: (row) => `/users/${row.id}/edit`
+});
+```
+
 
 ## Supported Column Data Types
 
