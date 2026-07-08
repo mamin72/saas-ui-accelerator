@@ -627,3 +627,17 @@ Commands:
 npm run release:policy:check
 npm run release:notes
 ```
+
+## Migration Guide Framework
+
+The repository includes a migration guide framework for future major versions:
+
+- `migrations/README.md`
+- `migrations/MIGRATION_GUIDE_TEMPLATE.md`
+- `migrations/examples/v1-to-v2-example.md`
+
+Validation command:
+
+```bash
+npm run migration:framework:check
+```

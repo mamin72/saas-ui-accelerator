@@ -21,7 +21,8 @@
     "benchmark": "npm run build && node benchmarks/run-benchmarks.cjs",
     "benchmark:quick": "npm run build && node benchmarks/run-benchmarks.cjs --sizes 1000,5000 --iterations 10 --warmup 2",
     "release:policy:check": "node scripts/verify-release-policy.cjs",
-    "release:notes": "node scripts/extract-release-notes.cjs --out release-notes.md"
+    "release:notes": "node scripts/extract-release-notes.cjs --out release-notes.md",
+    "migration:framework:check": "node scripts/validate-migration-framework.cjs"
   },
   "keywords": [
     "sorting",

@@ -71,7 +71,7 @@ These are the full target modules for a complete SaaS-ready library.
 2. [x] Add fuzz/property tests for parser and sorting correctness.
 3. [x] Add compatibility test matrix across Node versions.
 4. [x] Add release automation with changelog and version policy enforcement.
-5. Add migration guide framework for future major versions.
+5. [x] Add migration guide framework for future major versions.
 
 ## One-Thing-At-A-Time Backlog
 
@@ -95,6 +95,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 16. [x] Add fuzz/property tests for parser and sorting correctness.
 17. [x] Add compatibility test matrix across Node versions.
 18. [x] Add release automation with changelog and version policy enforcement.
+19. [x] Add migration guide framework for future major versions.
 
 ## Definition Of Done (for each item)
 
@@ -107,8 +108,5 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 19: Add migration guide framework for future major versions.
-- Scope for next implementation:
-- Add migration guide template for breaking and non-breaking changes.
-- Add examples for API renames, deprecations, and behavioral changes.
-- Include checklist-driven migration validation steps.
+- All items in the current roadmap are complete.
+- Next step: define the next roadmap cycle (v2) and prioritize new backlog items.

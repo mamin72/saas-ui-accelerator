@@ -634,6 +634,20 @@ Generate release notes from the current package version changelog section:
 npm run release:notes
 ```
 
+## Migration Guide Framework
+
+The repository now includes a migration guide framework for future major versions:
+
+- `migrations/README.md` (authoring process and usage)
+- `migrations/MIGRATION_GUIDE_TEMPLATE.md` (required template)
+- `migrations/examples/v1-to-v2-example.md` (example for API renames, deprecations, and behavior changes)
+
+Validate the framework in CI/local:
+
+```bash
+npm run migration:framework:check
+```
+
 ## Wiki
 
 The project includes versioned wiki content in the `wiki/` folder:
