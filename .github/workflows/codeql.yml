@@ -1,87 +1,38 @@
-name: CodeQL
+name: "CodeQL"
 
 on:
-  workflow_dispatch:
-
-permissions:
-  actions: read
-  contents: read
-  security-events: write
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 3 * * 1"
 
 jobs:
-  detect-default-setup:
-    if: vars.CODEQL_ADVANCED_WORKFLOW == 'true'
-    name: Detect CodeQL mode
+  analyze:
+    name: Analyze (javascript-typescript)
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
-      security-events: read
-    outputs:
-      default_setup_enabled: ${{ steps.detect.outputs.default_setup_enabled }}
-      default_setup_state: ${{ steps.detect.outputs.default_setup_state }}
-    steps:
-      - name: Detect whether CodeQL default setup is enabled
-        id: detect
-        uses: actions/github-script@v7
-        with:
-          script: |
-            try {
-              const response = await github.request('GET /repos/{owner}/{repo}/code-scanning/default-setup', {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-              });
+      security-events: write
 
-              const state = String(response?.data?.state ?? 'unknown');
-              core.setOutput('default_setup_state', state);
-              core.setOutput('default_setup_enabled', state.toLowerCase() === 'configured' ? 'true' : 'false');
-            } catch (error) {
-              core.warning(`Could not detect default setup state: ${String(error)}`);
-              core.setOutput('default_setup_state', 'unknown');
-              // Fail-open so advanced workflow remains active when state cannot be detected.
-              core.setOutput('default_setup_enabled', 'false');
-            }
-
-  analyze:
-    needs: detect-default-setup
-    if: vars.CODEQL_ADVANCED_WORKFLOW == 'true' && needs.detect-default-setup.outputs.default_setup_enabled != 'true'
-    name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript]
+        language: ["javascript-typescript"]
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-
-  skip-advanced-when-default-setup:
-    needs: detect-default-setup
-    if: vars.CODEQL_ADVANCED_WORKFLOW == 'true' && needs.detect-default-setup.outputs.default_setup_enabled == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Explain skip reason
-        run: |
-          echo "Skipping advanced CodeQL workflow because default setup is enabled (state=${{ needs.detect-default-setup.outputs.default_setup_state }})."
-          echo "To run this advanced workflow, disable default setup in repository Code Security settings."
-
-  skip-advanced-by-default:
-    if: vars.CODEQL_ADVANCED_WORKFLOW != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Explain skip reason
-        run: |
-          echo "Skipping advanced CodeQL workflow by default."
-          echo "Set repository variable CODEQL_ADVANCED_WORKFLOW=true to enable this workflow."
