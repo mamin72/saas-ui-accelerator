@@ -2,6 +2,60 @@
 
 Reusable TypeScript sorting component library.
 
+## Unified Namespace
+
+The package now exposes a unified namespace so you can consume all kits from one import.
+
+```ts
+import { component } from "sort_component";
+
+const auth = component.authKit.createContext({
+	tenantId: "tenant-1",
+	userId: "user-1",
+	roles: ["admin"],
+	permissions: ["billing:manage"]
+});
+
+const hasBilling = component.billingKit.createEntitlementChecker({
+	features: ["billing", "analytics"]
+});
+
+const table = component.dataGridPro.createTable({
+	data: [{ id: "1", name: "Alice" }],
+	columns: [{ key: "name", header: "Name", dataType: "text" }],
+	rowKey: "id"
+});
+```
+
+Kebab-case aliases are available through string keys:
+
+```ts
+component["auth-kit"];
+component["billing-kit"];
+component["data-grid-pro"];
+```
+
+Note: `component.auth-kit` is not valid JavaScript syntax. Use `component.authKit` or bracket access.
+
+Progressive roadmap enablement:
+
+```ts
+import { createEnabledComponent } from "sort_component";
+
+const runtime = createEnabledComponent({
+	enabledKits: ["data-grid-pro", "foundation-primitives"]
+});
+
+runtime.isEnabled("data-grid-pro"); // true
+runtime.isEnabled("auth-kit"); // false
+
+// Enabled
+runtime.component.dataGridPro;
+
+// Disabled kits throw if used until enabled in roadmap progression
+// runtime.component.authKit.createContext(...)
+```
+
 ## Feature Status
 
 ### Available Now
