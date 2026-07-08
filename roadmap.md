@@ -223,7 +223,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 42. [x] Phase 5/Foundation Track 4 chunk 5: add tests, docs, and examples for resilience primitives.
 43. [x] Phase 5/Foundation Track 4 completion gate: all chunk outputs integrated and validated.
 44. [x] Phase 5/Foundation Track 5 chunk 1: define i18n message formatting and translation key contracts.
-45. [ ] Phase 5/Foundation Track 5 chunk 2: implement locale-aware number and currency formatting helpers.
+45. [x] Phase 5/Foundation Track 5 chunk 2: implement locale-aware number and currency formatting helpers.
 46. [ ] Phase 5/Foundation Track 5 chunk 3: implement timezone-safe date formatting and parsing helpers.
 47. [ ] Phase 5/Foundation Track 5 chunk 4: implement locale-aware sort and filter utilities.
 48. [ ] Phase 5/Foundation Track 5 chunk 5: add tests, docs, and examples for localization primitives.
