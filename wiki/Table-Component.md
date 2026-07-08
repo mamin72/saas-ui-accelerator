@@ -468,7 +468,6 @@ const actionColumn = createDefaultMuiActionColumn({
 });
 ```
 
-
 ## Supported Column Data Types
 
 - `text`
@@ -607,10 +606,25 @@ Tests are intentionally deterministic and bounded for CI reliability.
 
 ## Node Compatibility Matrix
 
-CI runs `npm run quality:check` across active Node LTS versions:
+CI executes `npm run quality:check` across active Node LTS versions:
 
 - Node 20
 - Node 22
 
-This ensures compatibility and consistent behavior across supported Node runtimes.
+This keeps runtime compatibility checks deterministic and visible in CI.
+
+## Release Automation And Policy
+
+Release automation and policy enforcement are implemented with:
+
+- `.github/workflows/release.yml` for manual and tag-driven releases
+- changelog section extraction from `CHANGELOG.md`
+- release policy checks in CI for version and changelog consistency
+
+Commands:
+
+```bash
+npm run release:policy:check
+npm run release:notes
+```
 

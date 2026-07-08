@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release (must match package.json)
+        required: true
+        type: string
+      dry_run:
+        description: Validate only without creating a GitHub release
+        required: true
+        default: true
+        type: boolean
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run quality checks
+        run: npm run quality:check
+
+      - name: Validate release policy
+        if: github.event_name == 'workflow_dispatch'
+        run: node scripts/verify-release-policy.cjs --version "${{ inputs.version }}"
+
+      - name: Validate release policy from current package version
+        if: github.event_name == 'push'
+        run: npm run release:policy:check
+
+      - name: Extract release notes
+        if: github.event_name == 'workflow_dispatch'
+        run: node scripts/extract-release-notes.cjs --version "${{ inputs.version }}" --out release-notes.md
+
+      - name: Extract release notes for tag
+        if: github.event_name == 'push'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node scripts/extract-release-notes.cjs --version "$VERSION" --out release-notes.md
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+
+  publish-release:
+    needs: validate-release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: .
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="v${{ inputs.version }}"
+            NAME="Release v${{ inputs.version }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            NAME="Release ${GITHUB_REF_NAME}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.name }}
+          body_path: release-notes.md

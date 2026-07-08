@@ -605,12 +605,32 @@ Property/fuzz tests are deterministic and bounded to remain CI-friendly.
 
 ## Node Compatibility Matrix
 
-CI executes `npm run quality:check` across active Node LTS versions:
+CI runs `npm run quality:check` across active Node LTS versions:
 
 - Node 20
 - Node 22
 
-This compatibility matrix helps ensure deterministic behavior and consistent quality gates across supported runtimes.
+This ensures quality-gate consistency across supported runtimes.
+
+## Release Automation And Policy
+
+Release automation is implemented with:
+
+- `.github/workflows/release.yml` for manual or tag-driven release runs
+- changelog section extraction from `CHANGELOG.md`
+- version/changelog policy enforcement via CI
+
+Release policy checks:
+
+```bash
+npm run release:policy:check
+```
+
+Generate release notes from the current package version changelog section:
+
+```bash
+npm run release:notes
+```
 
 ## Wiki
 
@@ -626,7 +646,7 @@ The project includes versioned wiki content in the `wiki/` folder:
 Publish to GitHub wiki:
 
 1. Create one initial wiki page in GitHub UI (this initializes the wiki git backend):
-	- https://github.com/mamin72/saas-ui-accelerator/wiki
+   - [Project wiki](https://github.com/mamin72/saas-ui-accelerator/wiki)
 2. Run the publish script:
 
 ```powershell
