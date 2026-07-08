@@ -208,7 +208,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 27. [x] Phase 5/Foundation Track 2 chunk 2: implement optimistic update and rollback primitives.
 28. [x] Phase 5/Foundation Track 2 chunk 3: add offline-aware state sync and queueing patterns.
 29. [x] Phase 5/Foundation Track 2 chunk 4: add mutation lifecycle state primitives and events.
-30. [ ] Phase 5/Foundation Track 2 chunk 5: add tests, docs, and examples for data/state primitives.
+30. [x] Phase 5/Foundation Track 2 chunk 5: add tests, docs, and examples for data/state primitives.
 31. [ ] Phase 5/Foundation Track 2 completion gate: all chunk outputs integrated and validated.
 32. [ ] Phase 5/Foundation Track 3 chunk 1: define page-level access control contracts.
 33. [ ] Phase 5/Foundation Track 3 chunk 2: define component and action-level policy primitives.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 30: Phase 5/Foundation Track 2 chunk 5 - tests, docs, and examples for data/state primitives.
+- Item 31: Phase 5/Foundation Track 2 completion gate - all chunk outputs integrated and validated.
 - Scope for next implementation:
-- Expand integration tests across query, optimistic, offline queue, and mutation lifecycle contracts.
-- Add consolidated Foundation Track 2 examples in README for query and mutation workflows.
-- Confirm public API completeness for Track 2 ahead of completion gate item 31.
+- Add Foundation Track 2 completion gate tests covering integrated query/mutation workflows.
+- Validate README and roadmap consistency for shipped Track 2 capabilities.
+- Confirm full quality gate and release-readiness evidence for Track 2 handoff.

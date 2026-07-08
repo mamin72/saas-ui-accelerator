@@ -279,6 +279,49 @@ const eventTypes = lifecycle.listEvents().map((event) => event.type);
 // ["optimistic-applied", "committed", "rolled-back", "retry"]
 ```
 
+## Foundation Track 2 Quick Start
+
+```ts
+import {
+  applyOptimisticCacheUpdate,
+  commitOptimisticCacheUpdate,
+  createInMemoryCacheAdapter,
+  createMutationLifecycle,
+  createOfflineQueue,
+  createQueryCacheKey,
+  replayOfflineQueue,
+  rollbackOptimisticCacheUpdate
+} from "saas-ui-accelerator";
+
+const cache = createInMemoryCacheAdapter<{ status: string }>();
+const key = createQueryCacheKey("users.update", { id: "u1" });
+
+cache.set(key, { value: { status: "idle" }, createdAtEpochMs: Date.now() });
+
+const lifecycle = createMutationLifecycle<{ status: string }, string>({
+  key
+});
+
+const session = applyOptimisticCacheUpdate(cache, key, { status: "saving" });
+lifecycle.applyOptimistic({ status: "saving" });
+
+const queue = createOfflineQueue<{ id: string; status: string }>();
+queue.enqueue({ key, payload: { id: "u1", status: "saved" } });
+
+await replayOfflineQueue({
+  queue,
+  process: async (item) => {
+    commitOptimisticCacheUpdate(cache, session, { status: item.payload.status });
+    lifecycle.commit({ status: item.payload.status });
+  },
+  onRequeue: () => {
+    rollbackOptimisticCacheUpdate(cache, session);
+    lifecycle.rollback("offline");
+    lifecycle.retry();
+  }
+});
+```
+
 ## Data Format Contract
 
 `saas-ui-accelerator` now supports modern input formats directly through built-in codecs.
