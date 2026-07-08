@@ -90,7 +90,7 @@ These are the full target modules for a complete SaaS-ready library.
 1. [x] Add saved views model (filters, sort, visible columns, page size).
 2. [x] Add server-side mode adapters (sorting/filtering/pagination request model).
 3. [x] Add audit metadata hooks for row actions.
-4. Add permission-aware action predicates.
+4. [x] Add permission-aware action predicates.
 5. Add usage telemetry hooks for component interaction events.
 
 ## Phase 4: Production Hardening
@@ -117,6 +117,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 10. [x] Add saved views model (filters, sort, visible columns, page size).
 11. [x] Add server-side mode adapters (sorting/filtering/pagination request model).
 12. [x] Add audit metadata hooks for row actions.
+13. [x] Add permission-aware action predicates.
 
 ## Definition Of Done (for each item)
 
@@ -129,8 +130,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 13: Add permission-aware action predicates.
+- Item 14: Add usage telemetry hooks for component interaction events.
 - Scope for next implementation:
-- Add composable predicates for action visibility and enablement by permission context.
-- Keep predicates deterministic and side-effect free.
-- Ensure defaults preserve backward-compatible behavior.
+- Add event hooks for filtering/sorting/pagination/selection interactions.
+- Include lightweight metadata payloads and timestamps.
+- Keep telemetry hooks optional and side-effect safe.

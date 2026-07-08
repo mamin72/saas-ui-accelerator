@@ -24,6 +24,7 @@ export type TableFilterOperator =
 export type TableActionId = 'view' | 'edit' | 'archive' | 'delete';
 export type MuiActionIconName = 'Visibility' | 'Edit' | 'Archive' | 'Delete';
 export type TableActionAuditOutcome = 'started' | 'confirmed' | 'cancelled' | 'completed' | 'failed';
+export type TableActionPermissionSet = ReadonlySet<string> | readonly string[];
 
 export interface TableActionRouter {
   navigate(to: string): void;
@@ -37,8 +38,8 @@ export interface TableActionDefinition<T extends Record<string, unknown>> {
   readonly onAction?: (row: T) => void | Promise<void>;
   readonly requiresConfirmation?: boolean;
   readonly confirmationMessage?: string;
-  readonly visible?: (row: T) => boolean;
-  readonly enabled?: (row: T) => boolean;
+  readonly visible?: (row: T, context: TableActionPredicateContext<T>) => boolean;
+  readonly enabled?: (row: T, context: TableActionPredicateContext<T>) => boolean;
 }
 
 export interface TableActionColumn<T extends Record<string, unknown>> {
@@ -48,6 +49,18 @@ export interface TableActionColumn<T extends Record<string, unknown>> {
   readonly router?: TableActionRouter;
   readonly confirm?: (input: { actionId: TableActionId; message: string; row: T }) => boolean | Promise<boolean>;
   readonly onAudit?: (event: TableActionAuditEvent<T>) => void | Promise<void>;
+  readonly permissions?: TableActionPermissionSet;
+  readonly permissionResolver?: (row: T) => TableActionPermissionSet;
+}
+
+export interface TableActionPredicateContext<T extends Record<string, unknown>> {
+  readonly actionId: TableActionId;
+  readonly row: T;
+  readonly rowKey: TableRowKey;
+  readonly permissions: ReadonlySet<string>;
+  hasPermission(permission: string): boolean;
+  hasAnyPermissions(permissions: readonly string[]): boolean;
+  hasAllPermissions(permissions: readonly string[]): boolean;
 }
 
 export interface TableActionAuditEvent<T extends Record<string, unknown>> {
@@ -69,6 +82,8 @@ export interface TableDefaultActionColumnOptions<T extends Record<string, unknow
   readonly router: TableActionRouter;
   readonly confirm?: (input: { actionId: TableActionId; message: string; row: T }) => boolean | Promise<boolean>;
   readonly onAudit?: (event: TableActionAuditEvent<T>) => void | Promise<void>;
+  readonly permissions?: TableActionPermissionSet;
+  readonly permissionResolver?: (row: T) => TableActionPermissionSet;
   readonly getViewRoute?: (row: T) => string;
   readonly getEditRoute?: (row: T) => string;
   readonly getArchiveRoute?: (row: T) => string;
@@ -737,8 +752,9 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       };
     }
 
-    const visibleActions = actionColumn.actions.filter((action) => action.visible?.(row) ?? true);
-    const actionStates = visibleActions.map((action) => this.toActionState(action, row, actionColumn));
+    const rowKey = this.getRowKeyByRow(row);
+    const visibleActions = actionColumn.actions.filter((action) => this.isActionVisible(action, row, rowKey, actionColumn));
+    const actionStates = visibleActions.map((action) => this.toActionState(action, row, rowKey, actionColumn));
 
     return {
       key: this.getActionColumnKey(),
@@ -752,12 +768,12 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private toActionState(
     action: TableActionDefinition<T>,
     row: T,
+    rowKey: TableRowKey,
     actionColumn: TableActionColumn<T>
   ): TableActionState {
     const route = this.resolveRoute(action, row);
-    const rowKey = this.getRowKeyByRow(row);
     const hasHandler = route != null || action.onAction != null;
-    const explicitlyEnabled = action.enabled?.(row) ?? true;
+    const explicitlyEnabled = this.isActionEnabled(action, row, rowKey, actionColumn);
     const disabled = !hasHandler || !explicitlyEnabled;
 
     return {
@@ -838,6 +854,65 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
         }
       },
     };
+  }
+
+  private isActionVisible(
+    action: TableActionDefinition<T>,
+    row: T,
+    rowKey: TableRowKey,
+    actionColumn: TableActionColumn<T>
+  ): boolean {
+    if (action.visible == null) {
+      return true;
+    }
+
+    const context = this.toActionPredicateContext(action, row, rowKey, actionColumn);
+    return action.visible(row, context);
+  }
+
+  private isActionEnabled(
+    action: TableActionDefinition<T>,
+    row: T,
+    rowKey: TableRowKey,
+    actionColumn: TableActionColumn<T>
+  ): boolean {
+    if (action.enabled == null) {
+      return true;
+    }
+
+    const context = this.toActionPredicateContext(action, row, rowKey, actionColumn);
+    return action.enabled(row, context);
+  }
+
+  private toActionPredicateContext(
+    action: TableActionDefinition<T>,
+    row: T,
+    rowKey: TableRowKey,
+    actionColumn: TableActionColumn<T>
+  ): TableActionPredicateContext<T> {
+    const permissions = this.resolveActionPermissions(actionColumn, row);
+    return {
+      actionId: action.id,
+      row,
+      rowKey,
+      permissions,
+      hasPermission: (permission: string): boolean => permissions.has(permission),
+      hasAnyPermissions: (required: readonly string[]): boolean => required.some((permission) => permissions.has(permission)),
+      hasAllPermissions: (required: readonly string[]): boolean => required.every((permission) => permissions.has(permission)),
+    };
+  }
+
+  private resolveActionPermissions(actionColumn: TableActionColumn<T>, row: T): ReadonlySet<string> {
+    const source = actionColumn.permissionResolver?.(row) ?? actionColumn.permissions;
+    if (source == null) {
+      return new Set<string>();
+    }
+
+    if (source instanceof Set) {
+      return source;
+    }
+
+    return new Set(source);
   }
 
   private getRowKeyByRow(row: T): TableRowKey {
@@ -1528,6 +1603,8 @@ export function createDefaultMuiActionColumn<T extends Record<string, unknown>>(
     router: options.router,
     confirm: options.confirm,
     onAudit: options.onAudit,
+    permissions: options.permissions,
+    permissionResolver: options.permissionResolver,
     actions: [
       {
         id: 'view',

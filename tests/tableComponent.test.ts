@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { JsonTableComponent, createDefaultMuiActionColumn } from '../src/index';
+import type { TableActionPredicateContext } from '../src/index';
 
 describe('JsonTableComponent', () => {
   const rows = [
@@ -1046,5 +1047,107 @@ describe('JsonTableComponent', () => {
     await expect(view?.execute()).rejects.toThrow('boom');
     expect(failures[0]).toContain('view:started');
     expect(failures[1]).toContain('view:failed:false:boom');
+  });
+
+  it('supports permission-aware action visibility and enabled predicates', async () => {
+    type PermissionRow = { id: string; name: string };
+
+    const actionColumn = createDefaultMuiActionColumn<PermissionRow>({
+      router: { navigate: () => {} },
+      permissions: ['users:view', 'users:archive'],
+      getViewRoute: () => '/view',
+      getEditRoute: () => '/edit',
+      getArchiveRoute: () => '/archive',
+      getDeleteRoute: () => '/delete',
+    });
+
+    const customActions = actionColumn.actions.map((action) => {
+      if (action.id === 'edit') {
+        return {
+          ...action,
+          enabled: (_row: PermissionRow, context: TableActionPredicateContext<PermissionRow>) =>
+            context.hasPermission('users:edit'),
+        };
+      }
+
+      if (action.id === 'delete') {
+        return {
+          ...action,
+          visible: (_row: PermissionRow, context: TableActionPredicateContext<PermissionRow>) =>
+            context.hasAnyPermissions(['users:delete']),
+        };
+      }
+
+      if (action.id === 'archive') {
+        return {
+          ...action,
+          visible: (_row: PermissionRow, context: TableActionPredicateContext<PermissionRow>) =>
+            context.hasPermission('users:view') && context.hasAllPermissions(['users:archive']),
+        };
+      }
+
+      return action;
+    });
+
+    const component = new JsonTableComponent({
+      data: [{ id: 'u1', name: 'Alice' } satisfies PermissionRow],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+      actionColumn: {
+        ...actionColumn,
+        actions: customActions,
+      },
+      rowKey: 'id',
+    });
+
+    const actions = component.getTableRows()[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const ids = actions.map((action) => action.id);
+
+    expect(ids).toEqual(['view', 'edit', 'archive']);
+
+    const edit = actions.find((action) => action.id === 'edit');
+    expect(edit?.disabled).toBe(true);
+
+    const archive = actions.find((action) => action.id === 'archive');
+    expect(archive?.disabled).toBe(false);
+    await expect(archive?.execute()).resolves.toBe(true);
+  });
+
+  it('supports permissionResolver and keeps one-argument predicates backward-compatible', () => {
+    const seenRows: string[] = [];
+    const component = new JsonTableComponent({
+      data: [
+        { id: 'u1', name: 'Alice', role: 'admin' },
+        { id: 'u2', name: 'Bob', role: 'reader' },
+      ],
+      columns: [{ key: 'name', header: 'Name', dataType: 'text' }],
+      rowKey: 'id',
+      actionColumn: {
+        router: { navigate: () => {} },
+        permissionResolver: (row) => (row.role === 'admin' ? ['users:delete'] : []),
+        actions: [
+          {
+            id: 'view',
+            route: '/view',
+            visible: (row) => {
+              seenRows.push(String(row.name));
+              return true;
+            },
+          },
+          {
+            id: 'delete',
+            route: '/delete',
+            visible: (_row, context) => context.hasPermission('users:delete'),
+          },
+        ],
+      },
+    });
+
+    const rowStates = component.getTableRows();
+    const firstActions = rowStates[0]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+    const secondActions = rowStates[1]?.cells.find((cell) => cell.key === '__actions__')?.actions ?? [];
+
+    expect(seenRows).toEqual(['Alice', 'Bob']);
+    expect(firstActions.map((action) => action.id)).toEqual(['view', 'delete']);
+    expect(secondActions.map((action) => action.id)).toEqual(['view']);
   });
 });

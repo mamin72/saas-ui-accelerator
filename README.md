@@ -21,6 +21,7 @@ Reusable TypeScript sorting component library.
 - Saved views model for table state round-trip (`createSavedView`, `applySavedView`, `saveView`, `loadView`, `listSavedViews`)
 - Server-side mode adapters for API-ready request models (`toServerSortRules`, `toServerFilterRules`, `toServerPaginationRequest`, `createServerTableRequest`)
 - Action audit metadata hooks for row actions (`onAudit` with structured lifecycle events)
+- Permission-aware action predicates (`permissions`, `permissionResolver`, predicate context helpers)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -339,6 +340,29 @@ Action column support:
 - router navigation hooks for each action
 - built-in confirmation before `archive` and `delete`
 - audit metadata hooks (`onAudit`) for action lifecycle observability
+- permission-aware predicate context for `visible` and `enabled`
+
+Permission-aware predicate example:
+
+```ts
+import { andActionPredicates, requireAllPermissions, requirePermission } from "sort_component";
+
+const actionColumn = createDefaultMuiActionColumn({
+	router: { navigate: (to) => router.navigate(to) },
+	permissions: ['users:view', 'users:archive'],
+	getArchiveRoute: (row) => `/users/${row.id}/archive`
+});
+
+const archiveAction = {
+	id: 'archive' as const,
+	route: (row: { id: string }) => `/users/${row.id}/archive`,
+	visible: (_row: { id: string }, context) =>
+		andActionPredicates(
+			requirePermission('users:view'),
+			requireAllPermissions(['users:archive'])
+		)(context),
+};
+```
 
 Action audit hook example:
 

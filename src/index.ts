@@ -1,4 +1,5 @@
 export * from './sortByRules';
+export * from './actionPredicates';
 export * from './formatSupport';
 export * from './formatterPresets';
 export * from './serverModeAdapters';

@@ -272,6 +272,39 @@ Audit event metadata includes:
 - `timestamp`
 - `route`, `requiresConfirmation`, `confirmed`, `success`, `errorMessage`
 
+## Permission-Aware Action Predicates
+
+Action definitions can now use permission-aware context in `visible` and `enabled` callbacks.
+
+```ts
+import {
+  createDefaultMuiActionColumn,
+  andActionPredicates,
+  requireAllPermissions,
+  requirePermission
+} from 'sort_component';
+
+const actionColumn = createDefaultMuiActionColumn({
+  router: { navigate: (to) => router.navigate(to) },
+  permissions: ['users:view', 'users:archive']
+});
+
+const archiveAction = {
+  id: 'archive' as const,
+  route: '/archive',
+  visible: (_row: unknown, context) =>
+    andActionPredicates(requirePermission('users:view'), requireAllPermissions(['users:archive']))(context)
+};
+```
+
+Context capabilities:
+
+- `permissions` (readonly set)
+- `hasPermission(permission)`
+- `hasAnyPermissions(permissions)`
+- `hasAllPermissions(permissions)`
+- `actionId`, `row`, `rowKey`
+
 ## Formatter Presets
 
 The package also exports reusable formatter preset helpers for common regional defaults.
