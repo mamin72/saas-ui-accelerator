@@ -752,6 +752,69 @@ describe('JsonTableComponent', () => {
     );
   });
 
+  it('creates and applies saved views with round-trip state for filters, sort, visibility, and page size', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([{ columnKey: 'active', operator: 'isTrue' }]);
+    component.setSortRules([{ columnKey: 'name', direction: 'asc' }]);
+    component.setColumnVisibility('score', false);
+    component.setPagination({ pageIndex: 1, pageSize: 1 });
+
+    const saved = component.createSavedView();
+
+    component.clearFilters();
+    component.clearSort();
+    component.clearColumnVisibility();
+    component.setPagination({ pageIndex: 0, pageSize: 25 });
+
+    const applied = component.applySavedView(saved);
+
+    expect(applied.filters).toEqual([{ columnKey: 'active', operator: 'isTrue' }]);
+    expect(applied.sortRules).toEqual([{ columnKey: 'name', direction: 'asc' }]);
+    expect(applied.columnVisibility.score).toBe(false);
+    expect(applied.pageSize).toBe(1);
+    expect(component.getPagination()).toEqual({ pageIndex: 0, pageSize: 1 });
+  });
+
+  it('saves, lists, loads, deletes, and clears named views deterministically', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setFilters([{ columnKey: 'name', operator: 'contains', value: 'a' }]);
+    component.saveView('Alpha');
+
+    component.clearFilters();
+    component.setSortRules([{ columnKey: 'age', direction: 'desc' }]);
+    component.saveView('Beta');
+
+    expect(component.listSavedViews()).toEqual(['Alpha', 'Beta']);
+
+    component.loadView('Alpha');
+    expect(component.getFilters()).toEqual([{ columnKey: 'name', operator: 'contains', value: 'a' }]);
+
+    const fromStore = component.getSavedView('Beta');
+    expect(fromStore?.sortRules).toEqual([{ columnKey: 'age', direction: 'desc' }]);
+
+    expect(component.deleteSavedView('Alpha')).toBe(true);
+    expect(component.listSavedViews()).toEqual(['Beta']);
+
+    component.clearSavedViews();
+    expect(component.listSavedViews()).toEqual([]);
+  });
+
+  it('supports load/apply saved view pagination behavior options and validates view names', () => {
+    const component = new JsonTableComponent({ data: rows, columns });
+
+    component.setPagination({ pageIndex: 1, pageSize: 1 });
+    component.saveView('Page View');
+
+    component.setPagination({ pageIndex: 1, pageSize: 2 });
+    component.loadView('Page View', { resetToFirstPage: false });
+    expect(component.getPagination()).toEqual({ pageIndex: 1, pageSize: 1 });
+
+    expect(() => component.saveView('   ')).toThrow('Saved view name must be a non-empty string.');
+    expect(() => component.loadView('missing')).toThrow("Saved view 'missing' does not exist.");
+  });
+
   it('supports selecting rows by key and row object', () => {
     const component = new JsonTableComponent({ data: rows, columns });
 

@@ -202,6 +202,33 @@ Notes:
 - Hidden columns can be included explicitly
 - Values are exported using table display formatting and CSV-safe escaping
 
+## Saved Views
+
+Saved views provide deterministic round-trip state for table filters, sorting, visibility, and page size.
+
+```ts
+const initial = table.createSavedView();
+table.saveView("Default");
+
+table.setFilters([{ columnKey: "active", operator: "isTrue" }]);
+table.setSortRules([{ columnKey: "name", direction: "asc" }]);
+
+table.saveView("Active Users");
+table.loadView("Default");
+table.applySavedView(initial);
+```
+
+APIs:
+
+- `createSavedView()`
+- `applySavedView(view, { resetToFirstPage? })`
+- `saveView(name)`
+- `loadView(name, { resetToFirstPage? })`
+- `getSavedView(name)`
+- `listSavedViews()`
+- `deleteSavedView(name)`
+- `clearSavedViews()`
+
 ## Formatter Presets
 
 The package also exports reusable formatter preset helpers for common regional defaults.

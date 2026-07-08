@@ -87,7 +87,7 @@ These are the full target modules for a complete SaaS-ready library.
 
 ## Phase 3: SaaS Accelerators
 
-1. Add saved views model (filters, sort, visible columns, page size).
+1. [x] Add saved views model (filters, sort, visible columns, page size).
 2. Add server-side mode adapters (sorting/filtering/pagination request model).
 3. Add audit metadata hooks for row actions.
 4. Add permission-aware action predicates.
@@ -114,6 +114,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 7. [x] Add preset formatters (currency packs, locale packs, timezone helpers).
 8. [x] Add better error messages and validation utilities.
 9. [x] Add starter templates and copy-paste examples.
+10. [x] Add saved views model (filters, sort, visible columns, page size).
 
 ## Definition Of Done (for each item)
 
@@ -126,8 +127,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 10: Add saved views model (filters, sort, visible columns, page size).
+- Item 11: Add server-side mode adapters (sorting/filtering/pagination request model).
 - Scope for next implementation:
-- Add a persisted view model for filters, sort rules, visibility, and pagination size.
-- Add apply/save/load APIs that are deterministic and typed.
-- Ensure saved views can round-trip cleanly through table state.
+- Add typed request model adapters for sort, filter, and pagination state.
+- Ensure adapter outputs are deterministic and API-ready.
+- Keep adapters independent from transport/framework specifics.

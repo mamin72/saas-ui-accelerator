@@ -18,6 +18,7 @@ Reusable TypeScript sorting component library.
 - Formatter preset helpers (`currencyPacks`, `localePacks`, `timezonePacks`, `createCurrencyPreset`, `createDateFormatterPreset`, `createDateTimeFormatterPreset`, `createTimezonePreset`)
 - Validation helpers for column configs, row keys, delimiter checks, and supported format errors
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
+- Saved views model for table state round-trip (`createSavedView`, `applySavedView`, `saveView`, `loadView`, `listSavedViews`)
 - Action column support: `view`, `edit`, `archive`, `delete` with router hooks and confirmation support
 - Facade API: `myComponent` with aliases (`SortData`, `Sort`, `SortableTable`, `Table`, `myComponet`)
 
@@ -220,6 +221,31 @@ CSV export API:
 - `exportCsv()`
 - scopes: `all`, `filtered`, `sorted`, `paginated`, `selected`
 - options: `delimiter`, `includeHeaders`, `includeHiddenColumns`
+
+Saved views API:
+
+- `createSavedView()`
+- `applySavedView(view, { resetToFirstPage? })`
+- `saveView(name)`
+- `loadView(name, { resetToFirstPage? })`
+- `getSavedView(name)`
+- `listSavedViews()`
+- `deleteSavedView(name)`
+- `clearSavedViews()`
+
+Saved view example:
+
+```ts
+const initial = table.createSavedView();
+table.saveView("Default");
+
+table.setFilters([{ columnKey: "active", operator: "isTrue" }]);
+table.setSortRules([{ columnKey: "name", direction: "asc" }]);
+
+table.saveView("Active Users");
+table.loadView("Default");
+table.applySavedView(initial);
+```
 
 Formatter preset helpers:
 

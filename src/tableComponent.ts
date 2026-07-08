@@ -104,6 +104,13 @@ export interface TablePaginationState {
   readonly pageSize: number;
 }
 
+export interface TableSavedView<T extends Record<string, unknown>> {
+  readonly filters: readonly TableFilter<T>[];
+  readonly sortRules: readonly SortState[];
+  readonly columnVisibility: TableColumnVisibilityState;
+  readonly pageSize?: number;
+}
+
 export type TableColumnVisibilityState = Readonly<Record<string, boolean>>;
 export type TableRowKey = string | number;
 export type TableCsvExportScope = 'all' | 'filtered' | 'sorted' | 'paginated' | 'selected';
@@ -188,6 +195,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
   private readonly rowReferenceToToken: Map<T, string>;
   private readonly rowKeyResolver: (row: T, index: number) => TableRowKey;
   private selectedRowKeyTokens: Set<string>;
+  private readonly savedViews: Map<string, TableSavedView<T>>;
 
   constructor(options: JsonTableComponentOptions<T>) {
     this.rows = this.parseData(options.data);
@@ -203,6 +211,7 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
     this.rowReferenceToToken = new Map();
     this.buildRowKeyIndex();
     this.selectedRowKeyTokens = new Set();
+    this.savedViews = new Map();
   }
 
   public getHeaders(): readonly TableHeaderState[] {
@@ -495,6 +504,63 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
 
   public clearPagination(): void {
     this.paginationState = undefined;
+  }
+
+  public createSavedView(): TableSavedView<T> {
+    return this.cloneSavedView({
+      filters: this.getFilters(),
+      sortRules: this.getSortRules(),
+      columnVisibility: this.getColumnVisibility(),
+      pageSize: this.getPagination()?.pageSize,
+    });
+  }
+
+  public applySavedView(view: TableSavedView<T>, options?: { readonly resetToFirstPage?: boolean }): TableSavedView<T> {
+    this.setFilters(view.filters);
+    this.setSortRules(view.sortRules);
+    this.setColumnVisibilityMap(view.columnVisibility);
+
+    if (view.pageSize != null) {
+      this.setPageSize(view.pageSize, { resetToFirstPage: options?.resetToFirstPage !== false });
+    }
+
+    return this.createSavedView();
+  }
+
+  public saveView(name: string): TableSavedView<T> {
+    const normalized = this.normalizeViewName(name);
+    const view = this.createSavedView();
+    this.savedViews.set(normalized, view);
+    return this.cloneSavedView(view);
+  }
+
+  public loadView(name: string, options?: { readonly resetToFirstPage?: boolean }): TableSavedView<T> {
+    const normalized = this.normalizeViewName(name);
+    const view = this.savedViews.get(normalized);
+    if (view == null) {
+      throw new Error(`Saved view '${normalized}' does not exist.`);
+    }
+
+    return this.applySavedView(view, options);
+  }
+
+  public getSavedView(name: string): TableSavedView<T> | undefined {
+    const normalized = this.normalizeViewName(name);
+    const view = this.savedViews.get(normalized);
+    return view == null ? undefined : this.cloneSavedView(view);
+  }
+
+  public listSavedViews(): readonly string[] {
+    return Array.from(this.savedViews.keys()).sort((a, b) => a.localeCompare(b));
+  }
+
+  public deleteSavedView(name: string): boolean {
+    const normalized = this.normalizeViewName(name);
+    return this.savedViews.delete(normalized);
+  }
+
+  public clearSavedViews(): void {
+    this.savedViews.clear();
   }
 
   public setPageIndex(pageIndex: number): TablePaginationState {
@@ -875,6 +941,24 @@ export class JsonTableComponent<T extends Record<string, unknown>> {
       const suffix = availableColumns.length > 0 ? `Available columns: ${availableColumns.join(', ')}.` : 'No columns are configured.';
       throw new Error(`Unknown column '${columnKey}'. ${suffix}`);
     }
+  }
+
+  private normalizeViewName(name: string): string {
+    const normalized = name.trim();
+    if (normalized.length === 0) {
+      throw new Error('Saved view name must be a non-empty string.');
+    }
+
+    return normalized;
+  }
+
+  private cloneSavedView(view: TableSavedView<T>): TableSavedView<T> {
+    return {
+      filters: view.filters.map((filter) => ({ ...filter })),
+      sortRules: view.sortRules.map((rule) => ({ ...rule })),
+      columnVisibility: { ...view.columnVisibility },
+      pageSize: view.pageSize,
+    };
   }
 
   private assertValidPageIndex(pageIndex: number): void {
