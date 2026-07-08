@@ -163,6 +163,42 @@ const currentTheme = resolver.resolve("light");
 const fallbackTheme = resolver.resolve("unknown");
 ```
 
+## Foundation Track 1 Quick Start
+
+```ts
+import {
+  baselineThemePacks,
+  createDirectionalTokenPair,
+  createThemeResolver,
+  createTokenSchema,
+  getTokenValue,
+  resolveDensityModeTokens
+} from "saas-ui-accelerator";
+
+const schema = createTokenSchema({
+  tokens: {
+    "color.brand.primary": "#2563eb",
+    "color.surface.canvas": "#ffffff",
+    "space.scale.200": 8
+  },
+  semanticAliases: {
+    "color.action.primary.background": "color.brand.primary",
+    "color.page.background": "color.surface.canvas"
+  },
+  namingConvention: {
+    allowedPrefixes: ["color", "space"]
+  }
+});
+
+const resolver = createThemeResolver(baselineThemePacks, { fallbackTheme: "dark" });
+const theme = resolver.resolve("light");
+
+const compact = resolveDensityModeTokens("compact");
+const rtlDirectional = createDirectionalTokenPair(undefined, "rtl");
+
+const pageBackground = getTokenValue(theme.schema, "color.page.background");
+```
+
 ## Data Format Contract
 
 `saas-ui-accelerator` now supports modern input formats directly through built-in codecs.
