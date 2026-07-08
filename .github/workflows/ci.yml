@@ -66,6 +66,7 @@ jobs:
             core.setFailed(messages.join("\n"));
 
   quality-check:
+    name: quality-check
     runs-on: ubuntu-latest
 
     steps:
@@ -83,3 +84,47 @@ jobs:
 
       - name: Run quality checks
         run: npm run quality:check
+
+  quality-check-matrix:
+    name: quality-check-matrix (node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run quality checks
+        run: npm run quality:check
+
+  release-policy-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate version and changelog policy
+        run: npm run release:policy:check

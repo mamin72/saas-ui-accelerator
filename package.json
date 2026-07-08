@@ -19,7 +19,9 @@
     "test:coverage": "vitest run --coverage",
     "quality:check": "npm run typecheck && npm run lint && npm run test:coverage",
     "benchmark": "npm run build && node benchmarks/run-benchmarks.cjs",
-    "benchmark:quick": "npm run build && node benchmarks/run-benchmarks.cjs --sizes 1000,5000 --iterations 10 --warmup 2"
+    "benchmark:quick": "npm run build && node benchmarks/run-benchmarks.cjs --sizes 1000,5000 --iterations 10 --warmup 2",
+    "release:policy:check": "node scripts/verify-release-policy.cjs",
+    "release:notes": "node scripts/extract-release-notes.cjs --out release-notes.md"
   },
   "keywords": [
     "sorting",
