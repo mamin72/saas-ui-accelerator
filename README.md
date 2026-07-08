@@ -267,6 +267,97 @@ decision.allowed;
 
 See [wiki/Access-Control-Primitives.md](wiki/Access-Control-Primitives.md) for a complete guide.
 
+## Resilience Primitives Quick Start
+
+```ts
+import {
+  createErrorBoundaryContract,
+  createErrorResilienceRegistry,
+  createFallbackViewContract,
+  createLoadingStateContract,
+  createLoadingStateRegistry,
+  createOptimisticRecoveryController,
+  createOptimisticRollbackPolicyContract,
+  createRetryPolicyContract,
+  createSkeletonViewContract,
+  deriveLoadingStatePresentation,
+  executeWithRetry
+} from "saas-ui-accelerator";
+
+const loadingRegistry = createLoadingStateRegistry({
+  loadingStates: [
+    createLoadingStateContract({
+      stateKey: "users.table",
+      skeletonViewKey: "users.table.skeleton",
+      showAfterMs: 120
+    })
+  ],
+  skeletonViews: [
+    createSkeletonViewContract({
+      viewKey: "users.table.skeleton",
+      variant: "table-row",
+      lineCount: 6
+    })
+  ]
+});
+
+const errorRegistry = createErrorResilienceRegistry({
+  boundaries: [
+    createErrorBoundaryContract({
+      boundaryKey: "users.table.boundary",
+      fallbackViewKey: "users.table.fallback"
+    })
+  ],
+  fallbackViews: [
+    createFallbackViewContract({
+      viewKey: "users.table.fallback",
+      title: "Users are unavailable",
+      message: "Try reloading the page."
+    })
+  ]
+});
+
+const retryPolicy = createRetryPolicyContract({
+  policyKey: "users.update.retry",
+  maxAttempts: 3,
+  retryableErrorTypes: ["TimeoutError"]
+});
+
+const recoveryPolicy = createOptimisticRollbackPolicyContract({
+  policyKey: "users.update.recovery",
+  maxRecoveryAttempts: 2,
+  recoveryDelayMs: 15,
+  useExponentialBackoff: true
+});
+
+const recovery = createOptimisticRecoveryController({
+  key: "users.update",
+  baselineValue: { status: "stable" },
+  optimisticValue: { status: "pending-save" },
+  policy: recoveryPolicy
+});
+
+const loadingResolution = loadingRegistry.resolveSkeleton("users.table");
+const fallbackResolution = errorRegistry.resolveFallback("users.table.boundary");
+
+const presentation = deriveLoadingStatePresentation({
+  contract: loadingResolution.loadingState!,
+  status: "loading",
+  isFetching: true,
+  elapsedLoadingMs: 200,
+  hasPreviousContent: true
+});
+
+await executeWithRetry(async () => ({ status: "saved" }), retryPolicy);
+recovery.rollback("network-timeout");
+recovery.recover({ status: "saved" });
+
+presentation.showSkeleton;
+fallbackResolution.fallbackView?.allowRetry;
+```
+
+See [wiki/Resilience-Primitives.md](wiki/Resilience-Primitives.md) for a complete guide.
+
 ## Query Contracts and Cache Adapters
 
 ```ts

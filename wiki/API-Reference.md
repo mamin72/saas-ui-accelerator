@@ -1,6 +1,7 @@
 # API Reference
 
 For runnable access-control examples, see [Access Control Primitives](Access-Control-Primitives).
+For runnable resilience examples, see [Resilience Primitives](Resilience-Primitives).
 
 ## sortByRules
 
@@ -269,3 +270,188 @@ combinePolicyEvaluationDecisions(results: readonly Array<{ allowed: boolean; rea
 ```
 
 Combines multiple policy evaluation results into a single allow/deny decision with merged reasons.
+
+## createErrorBoundaryContract
+
+```ts
+createErrorBoundaryContract(input: {
+  boundaryKey: string;
+  scope?: "global" | "route" | "page" | "component";
+  fallbackViewKey: string;
+  captureErrorTypes?: readonly string[];
+  tags?: readonly string[];
+  rethrowInDevelopment?: boolean;
+}): ErrorBoundaryContract
+```
+
+Creates a normalized error boundary contract mapped to a fallback view.
+
+## createFallbackViewContract
+
+```ts
+createFallbackViewContract(input: {
+  viewKey: string;
+  title: string;
+  message: string;
+  severity?: "info" | "warning" | "error" | "fatal";
+  allowRetry?: boolean;
+  supportReferenceId?: string;
+}): FallbackViewContract
+```
+
+Creates a normalized fallback view contract for resilience rendering.
+
+## createErrorResilienceRegistry
+
+```ts
+createErrorResilienceRegistry(input: {
+  boundaries: readonly ErrorBoundaryContract[];
+  fallbackViews: readonly FallbackViewContract[];
+}): {
+  hasBoundary(boundaryKey: string): boolean;
+  hasFallbackView(viewKey: string): boolean;
+  listBoundaryKeys(): readonly string[];
+  listFallbackViewKeys(): readonly string[];
+  resolveFallback(boundaryKey: string): ErrorBoundaryResolution;
+}
+```
+
+Registers and resolves error boundary to fallback mappings with reason metadata.
+
+## createRetryPolicyContract
+
+```ts
+createRetryPolicyContract(input: {
+  policyKey: string;
+  maxAttempts?: number;
+  initialDelayMs?: number;
+  maxDelayMs?: number;
+  backoff?: "fixed" | "exponential";
+  jitterRatio?: number;
+  retryableErrorTypes?: readonly string[];
+  retryableStatusCodes?: readonly number[];
+}): RetryPolicyContract
+```
+
+Creates a normalized retry policy used by retry wrappers.
+
+## calculateRetryDelayMs
+
+```ts
+calculateRetryDelayMs(policy: RetryPolicyContract, failedAttempt: number, randomValue?: number): number
+```
+
+Calculates retry delay for fixed/exponential backoff with optional jitter.
+
+## executeWithRetry
+
+```ts
+executeWithRetry<TValue>(
+  operation: (attempt: number) => Promise<TValue>,
+  policy: RetryPolicyContract,
+  options?: {
+    sleep?: (delayMs: number) => Promise<void>;
+    random?: () => number;
+  }
+): Promise<RetryExecutionResult<TValue>>
+```
+
+Runs async operations with retry policy enforcement and event capture.
+
+## createLoadingStateContract
+
+```ts
+createLoadingStateContract(input: {
+  stateKey: string;
+  skeletonViewKey: string;
+  showAfterMs?: number;
+  minVisibleMs?: number;
+  preservePreviousContent?: boolean;
+  announceLoading?: boolean;
+}): LoadingStateContract
+```
+
+Creates loading-state conventions including timing and announcement behavior.
+
+## createSkeletonViewContract
+
+```ts
+createSkeletonViewContract(input: {
+  viewKey: string;
+  variant?: "text" | "card" | "table-row" | "chart" | "custom";
+  lineCount?: number;
+  animated?: boolean;
+  density?: "compact" | "comfortable";
+}): SkeletonViewContract
+```
+
+Creates typed skeleton view contracts used during loading states.
+
+## createLoadingStateRegistry
+
+```ts
+createLoadingStateRegistry(input: {
+  loadingStates: readonly LoadingStateContract[];
+  skeletonViews: readonly SkeletonViewContract[];
+}): {
+  hasLoadingState(stateKey: string): boolean;
+  hasSkeletonView(viewKey: string): boolean;
+  listLoadingStateKeys(): readonly string[];
+  listSkeletonViewKeys(): readonly string[];
+  resolveSkeleton(stateKey: string): LoadingStateResolution;
+}
+```
+
+Resolves loading states to skeleton views with standardized reason metadata.
+
+## deriveLoadingStatePresentation
+
+```ts
+deriveLoadingStatePresentation(input: {
+  contract: LoadingStateContract;
+  status: "idle" | "loading" | "success" | "error";
+  isFetching: boolean;
+  elapsedLoadingMs: number;
+  hasPreviousContent?: boolean;
+}): LoadingStatePresentation
+```
+
+Derives show/hide skeleton and previous-content behavior from loading conventions.
+
+## createOptimisticRollbackPolicyContract
+
+```ts
+createOptimisticRollbackPolicyContract(input: {
+  policyKey: string;
+  maxRecoveryAttempts?: number;
+  recoveryDelayMs?: number;
+  maxRecoveryDelayMs?: number;
+  useExponentialBackoff?: boolean;
+  preserveFailedOptimisticValue?: boolean;
+}): OptimisticRollbackPolicyContract
+```
+
+Creates normalized policy contracts for optimistic rollback and recovery behavior.
+
+## calculateRecoveryDelayMs
+
+```ts
+calculateRecoveryDelayMs(policy: OptimisticRollbackPolicyContract, attempt: number): number
+```
+
+Calculates recovery delay using fixed or exponential policy configuration.
+
+## createOptimisticRecoveryController
+
+```ts
+createOptimisticRecoveryController<TValue, TError>(input: {
+  key: string;
+  baselineValue: TValue;
+  optimisticValue: TValue;
+  policy?: OptimisticRollbackPolicyContract;
+  nowEpochMs?: () => number;
+  maxEvents?: number;
+}): OptimisticRecoveryController<TValue, TError>
+```
+
+Creates lifecycle helpers for optimistic commit, rollback, recovery planning, and reset flows.

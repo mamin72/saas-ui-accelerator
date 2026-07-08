@@ -220,7 +220,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 39. [x] Phase 5/Foundation Track 4 chunk 2: implement retry wrappers with policy configuration.
 40. [x] Phase 5/Foundation Track 4 chunk 3: add skeleton/loading-state primitives and conventions.
 41. [x] Phase 5/Foundation Track 4 chunk 4: implement optimistic rollback and recovery helpers.
-42. [ ] Phase 5/Foundation Track 4 chunk 5: add tests, docs, and examples for resilience primitives.
+42. [x] Phase 5/Foundation Track 4 chunk 5: add tests, docs, and examples for resilience primitives.
 43. [ ] Phase 5/Foundation Track 4 completion gate: all chunk outputs integrated and validated.
 44. [ ] Phase 5/Foundation Track 5 chunk 1: define i18n message formatting and translation key contracts.
 45. [ ] Phase 5/Foundation Track 5 chunk 2: implement locale-aware number and currency formatting helpers.
