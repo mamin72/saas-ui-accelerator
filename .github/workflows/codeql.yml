@@ -14,7 +14,40 @@ permissions:
   security-events: write
 
 jobs:
+  detect-default-setup:
+    name: Detect CodeQL mode
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+    outputs:
+      default_setup_enabled: ${{ steps.detect.outputs.default_setup_enabled }}
+      default_setup_state: ${{ steps.detect.outputs.default_setup_state }}
+    steps:
+      - name: Detect whether CodeQL default setup is enabled
+        id: detect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const response = await github.request('GET /repos/{owner}/{repo}/code-scanning/default-setup', {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+
+              const state = String(response?.data?.state ?? 'unknown');
+              core.setOutput('default_setup_state', state);
+              core.setOutput('default_setup_enabled', state.toLowerCase() === 'configured' ? 'true' : 'false');
+            } catch (error) {
+              core.warning(`Could not detect default setup state: ${String(error)}`);
+              core.setOutput('default_setup_state', 'unknown');
+              // Fail-open so advanced workflow remains active when state cannot be detected.
+              core.setOutput('default_setup_enabled', 'false');
+            }
+
   analyze:
+    needs: detect-default-setup
+    if: needs.detect-default-setup.outputs.default_setup_enabled != 'true'
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     strategy:
@@ -37,3 +70,13 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
+  skip-advanced-when-default-setup:
+    needs: detect-default-setup
+    if: needs.detect-default-setup.outputs.default_setup_enabled == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain skip reason
+        run: |
+          echo "Skipping advanced CodeQL workflow because default setup is enabled (state=${{ needs.detect-default-setup.outputs.default_setup_state }})."
+          echo "To run this advanced workflow, disable default setup in repository Code Security settings."
