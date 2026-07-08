@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  combinePolicyEvaluationDecisions,
   createActionAccessEvaluator,
   createActionAccessPolicy,
   createComponentAccessEvaluator,
   createComponentAccessPolicy,
   createFieldAccessEvaluator,
   createFieldAccessPolicy,
+  createTenantScopedActionAccessPolicy,
+  createTenantScopedComponentAccessPolicy,
+  createTenantScopedFieldAccessPolicy,
+  evaluateTenantScopedActionAccess,
+  evaluateTenantScopedComponentAccess,
+  evaluateTenantScopedFieldAccess,
   fieldEquals,
   fieldIsTrue,
   type ComponentAccessPrincipal,
@@ -107,6 +114,54 @@ describe('foundation track 3 integration', () => {
     expect(fieldAllowed.allowed).toBe(true);
     expect(fieldDenied.allowed).toBe(false);
     expect(fieldDenied.reasons.map((reason) => reason.code)).toEqual(['conditions-not-met']);
+
+    const tenantComponentPolicy = createTenantScopedComponentAccessPolicy({
+      componentKey: 'users-table',
+      requiredPermissions: ['users:read'],
+      allowedTenants: ['tenant-a'],
+    });
+
+    const tenantActionPolicy = createTenantScopedActionAccessPolicy({
+      componentKey: 'users-table',
+      actionKey: 'archive',
+      requiredPermissions: ['users:archive'],
+      allowedTenants: ['tenant-a'],
+    });
+
+    type TenantFieldRecord = {
+      amount: number;
+      status: 'draft' | 'published';
+    };
+
+    const tenantFieldPolicy = createTenantScopedFieldAccessPolicy<TenantFieldRecord, 'amount'>({
+      fieldKey: 'amount',
+      mode: 'write',
+      requiredPermissions: ['users:archive'],
+      conditions: [fieldEquals<TenantFieldRecord, 'status'>('status', 'draft')],
+      allowedTenants: ['tenant-a'],
+    });
+
+    const tenantComponentResult = evaluateTenantScopedComponentAccess(tenantComponentPolicy, principal);
+    const tenantActionResult = evaluateTenantScopedActionAccess(tenantActionPolicy, principal);
+    const tenantFieldResult = evaluateTenantScopedFieldAccess(tenantFieldPolicy, {
+      principal,
+      record: {
+        amount: 10,
+        status: 'draft',
+      },
+    });
+
+    expect(tenantComponentResult.allowed).toBe(true);
+    expect(tenantActionResult.allowed).toBe(true);
+    expect(tenantFieldResult.allowed).toBe(true);
+
+    const combinedDecision = combinePolicyEvaluationDecisions([
+      tenantComponentResult,
+      tenantActionResult,
+      tenantFieldResult,
+    ]);
+    expect(combinedDecision.allowed).toBe(true);
+    expect(combinedDecision.decision).toBe('allow');
   });
 
   it('supports public component and action access policies when unauthenticated', () => {

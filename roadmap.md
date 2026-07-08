@@ -214,7 +214,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 33. [x] Phase 5/Foundation Track 3 chunk 2: define component and action-level policy primitives.
 34. [x] Phase 5/Foundation Track 3 chunk 3: implement field-level guard utilities with typed conditions.
 35. [x] Phase 5/Foundation Track 3 chunk 4: integrate tenant scoping and policy evaluation helpers.
-36. [ ] Phase 5/Foundation Track 3 chunk 5: add tests, docs, and examples for access control primitives.
+36. [x] Phase 5/Foundation Track 3 chunk 5: add tests, docs, and examples for access control primitives.
 37. [ ] Phase 5/Foundation Track 3 completion gate: all chunk outputs integrated and validated.
 38. [ ] Phase 5/Foundation Track 4 chunk 1: define error boundary and fallback view contracts.
 39. [ ] Phase 5/Foundation Track 4 chunk 2: implement retry wrappers with policy configuration.

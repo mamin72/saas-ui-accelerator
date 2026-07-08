@@ -207,6 +207,66 @@ const rtlDirectional = createDirectionalTokenPair(undefined, "rtl");
 const pageBackground = getTokenValue(theme.schema, "color.page.background");
 ```
 
+## Access Control Primitives Quick Start
+
+```ts
+import {
+  combinePolicyEvaluationDecisions,
+  createActionAccessPolicy,
+  createComponentAccessPolicy,
+  createFieldAccessPolicy,
+  createPageAccessContract,
+  createTenantScopedActionAccessPolicy,
+  createTenantScopedComponentAccessPolicy,
+  createTenantScopedFieldAccessPolicy,
+  evaluateActionAccess,
+  evaluateComponentAccess,
+  evaluateFieldAccess,
+  evaluatePageAccess,
+  evaluateTenantScopedActionAccess,
+  evaluateTenantScopedComponentAccess,
+  evaluateTenantScopedFieldAccess,
+  fieldEquals
+} from "saas-ui-accelerator";
+
+const principal = {
+  userId: "u-1",
+  roles: ["admin"],
+  permissions: ["users:read", "users:write", "users:archive"],
+  tenantId: "tenant-a"
+};
+
+const pagePolicy = createPageAccessContract({ pageKey: "users.page", requiredRoles: ["admin"] });
+const componentPolicy = createComponentAccessPolicy({ componentKey: "users-table", requiredPermissions: ["users:read"] });
+const actionPolicy = createActionAccessPolicy({ componentKey: "users-table", actionKey: "archive", requiredPermissions: ["users:archive"] });
+
+type UserRecord = { amount: number; status: "draft" | "published" };
+const fieldPolicy = createFieldAccessPolicy<UserRecord, "amount">({
+  fieldKey: "amount",
+  mode: "write",
+  requiredPermissions: ["users:write"],
+  conditions: [fieldEquals<UserRecord, "status">("status", "draft")]
+});
+
+const tenantComponentPolicy = createTenantScopedComponentAccessPolicy({ componentKey: "users-table", allowedTenants: ["tenant-a"] });
+const tenantActionPolicy = createTenantScopedActionAccessPolicy({ componentKey: "users-table", actionKey: "archive", allowedTenants: ["tenant-a"] });
+const tenantFieldPolicy = createTenantScopedFieldAccessPolicy<UserRecord, "amount">({ fieldKey: "amount", allowedTenants: ["tenant-a"] });
+
+const decision = combinePolicyEvaluationDecisions([
+  evaluatePageAccess(pagePolicy, principal),
+  evaluateComponentAccess(componentPolicy, principal),
+  evaluateActionAccess(actionPolicy, principal),
+  evaluateFieldAccess(fieldPolicy, { principal, record: { amount: 10, status: "draft" } }),
+  evaluateTenantScopedComponentAccess(tenantComponentPolicy, principal),
+  evaluateTenantScopedActionAccess(tenantActionPolicy, principal),
+  evaluateTenantScopedFieldAccess(tenantFieldPolicy, { principal, record: { amount: 10, status: "draft" } })
+]);
+
+decision.allowed;
+```
+
+See [wiki/Access-Control-Primitives.md](wiki/Access-Control-Primitives.md) for a complete guide.
+
 ## Query Contracts and Cache Adapters
 
 ```ts

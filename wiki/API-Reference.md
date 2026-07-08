@@ -1,5 +1,7 @@
 # API Reference
 
+For runnable access-control examples, see [Access Control Primitives](Access-Control-Primitives).
+
 ## sortByRules
 
 ```ts
