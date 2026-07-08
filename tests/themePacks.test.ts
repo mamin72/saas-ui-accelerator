@@ -3,7 +3,10 @@ import {
   assertThemePacksShareAliasCoverage,
   assertThemePacksShareTokenCoverage,
   baselineThemePacks,
+  createDirectionalTokenPair,
   createThemePack,
+  resolveDensityModeTokens,
+  resolveDirectionalTokenName,
 } from '../src/index';
 
 describe('theme packs', () => {
@@ -74,5 +77,44 @@ describe('theme packs', () => {
     expect(() => assertThemePacksShareAliasCoverage(brokenPacks)).toThrow(
       "Theme 'dark' alias coverage does not match baseline theme 'light'."
     );
+  });
+
+  it('resolves density mode token layers for compact, comfortable, and spacious modes', () => {
+    const compact = resolveDensityModeTokens('compact');
+    const comfortable = resolveDensityModeTokens('comfortable');
+    const spacious = resolveDensityModeTokens('spacious');
+
+    expect(compact['space.component.height.control']).toBe(32);
+    expect(comfortable['space.component.height.control']).toBe(36);
+    expect(spacious['space.component.height.control']).toBe(42);
+
+    expect(compact['space.component.padding-inline']).toBeLessThan(
+      comfortable['space.component.padding-inline'] as number
+    );
+    expect(comfortable['space.component.padding-inline']).toBeLessThan(
+      spacious['space.component.padding-inline'] as number
+    );
+  });
+
+  it('maps directional tokens safely for ltr and rtl', () => {
+    expect(resolveDirectionalTokenName(undefined, 'start', 'ltr')).toBe(
+      'space.component.padding-start'
+    );
+    expect(resolveDirectionalTokenName(undefined, 'end', 'ltr')).toBe(
+      'space.component.padding-end'
+    );
+
+    expect(resolveDirectionalTokenName(undefined, 'start', 'rtl')).toBe(
+      'space.component.padding-end'
+    );
+    expect(resolveDirectionalTokenName(undefined, 'end', 'rtl')).toBe(
+      'space.component.padding-start'
+    );
+
+    const rtlPair = createDirectionalTokenPair(undefined, 'rtl');
+    expect(rtlPair).toEqual({
+      inlineStart: 'space.component.padding-end',
+      inlineEnd: 'space.component.padding-start',
+    });
   });
 });

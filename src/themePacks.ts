@@ -6,6 +6,13 @@ import {
 } from './tokenSchema';
 
 export type ThemeName = 'light' | 'dark' | 'high-contrast';
+export type DensityMode = 'compact' | 'comfortable' | 'spacious';
+export type TextDirection = 'ltr' | 'rtl';
+
+export interface DirectionalTokenMap {
+  start: string;
+  end: string;
+}
 
 export interface ThemePack<
   TTokens extends TokenDictionary = TokenDictionary,
@@ -13,6 +20,11 @@ export interface ThemePack<
 > {
   name: ThemeName;
   schema: TokenSchema<TTokens, TAliases>;
+}
+
+export interface DensityModeTokenLayer {
+  mode: DensityMode;
+  tokens: TokenDictionary;
 }
 
 const baseSemanticAliases = {
@@ -28,6 +40,35 @@ const baseSemanticAliases = {
 
 const defaultThemeNamingConvention = {
   allowedPrefixes: ['color', 'space', 'radius', 'opacity'],
+} as const;
+
+const defaultDensityModeTokenLayers = {
+  compact: {
+    'space.component.padding-inline': 8,
+    'space.component.padding-block': 6,
+    'space.component.gap.inline': 6,
+    'space.component.gap.block': 6,
+    'space.component.height.control': 32,
+  },
+  comfortable: {
+    'space.component.padding-inline': 12,
+    'space.component.padding-block': 8,
+    'space.component.gap.inline': 8,
+    'space.component.gap.block': 8,
+    'space.component.height.control': 36,
+  },
+  spacious: {
+    'space.component.padding-inline': 16,
+    'space.component.padding-block': 12,
+    'space.component.gap.inline': 12,
+    'space.component.gap.block': 12,
+    'space.component.height.control': 42,
+  },
+} satisfies Record<DensityMode, TokenDictionary>;
+
+const defaultDirectionalTokenMap = {
+  start: 'space.component.padding-start',
+  end: 'space.component.padding-end',
 } as const;
 
 export function createThemePack<
@@ -118,6 +159,10 @@ export function createBaselineThemePacks(): Record<ThemeName, ThemePack> {
 
 export const baselineThemePacks = Object.freeze(createBaselineThemePacks());
 
+export const baselineDensityModeLayers = Object.freeze(
+  createBaselineDensityModeLayers()
+);
+
 export function assertThemePacksShareTokenCoverage(themePacks: Record<ThemeName, ThemePack>): void {
   const [firstName, ...restNames] = Object.keys(themePacks) as ThemeName[];
   const baselineTokenKeys = sortedKeys(themePacks[firstName].schema.tokens);
@@ -148,6 +193,52 @@ export function assertThemePacksShareAliasCoverage(themePacks: Record<ThemeName,
       );
     }
   }
+}
+
+export function createBaselineDensityModeLayers(): Record<DensityMode, DensityModeTokenLayer> {
+  return {
+    compact: {
+      mode: 'compact',
+      tokens: Object.freeze({ ...defaultDensityModeTokenLayers.compact }),
+    },
+    comfortable: {
+      mode: 'comfortable',
+      tokens: Object.freeze({ ...defaultDensityModeTokenLayers.comfortable }),
+    },
+    spacious: {
+      mode: 'spacious',
+      tokens: Object.freeze({ ...defaultDensityModeTokenLayers.spacious }),
+    },
+  };
+}
+
+export function resolveDensityModeTokens(
+  mode: DensityMode,
+  layers: Record<DensityMode, DensityModeTokenLayer> = baselineDensityModeLayers
+): TokenDictionary {
+  return layers[mode].tokens;
+}
+
+export function resolveDirectionalTokenName(
+  map: DirectionalTokenMap = defaultDirectionalTokenMap,
+  side: 'start' | 'end',
+  direction: TextDirection
+): string {
+  if (direction === 'ltr') {
+    return side === 'start' ? map.start : map.end;
+  }
+
+  return side === 'start' ? map.end : map.start;
+}
+
+export function createDirectionalTokenPair(
+  map: DirectionalTokenMap = defaultDirectionalTokenMap,
+  direction: TextDirection
+): { inlineStart: string; inlineEnd: string } {
+  return {
+    inlineStart: resolveDirectionalTokenName(map, 'start', direction),
+    inlineEnd: resolveDirectionalTokenName(map, 'end', direction),
+  };
 }
 
 function sortedKeys(dictionary: TokenDictionary): string[] {
