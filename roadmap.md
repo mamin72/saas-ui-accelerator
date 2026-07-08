@@ -228,7 +228,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 47. [x] Phase 5/Foundation Track 5 chunk 4: implement locale-aware sort and filter utilities.
 48. [x] Phase 5/Foundation Track 5 chunk 5: add tests, docs, and examples for localization primitives.
 49. [x] Phase 5/Foundation Track 5 completion gate: all chunk outputs integrated and validated.
-50. [ ] Phase 6/Auth Kit chunk 1: define sign-in/sign-up form schemas, typed submission contracts, and validation/error mapping helpers.
+50. [x] Phase 6/Auth Kit chunk 1: define sign-in/sign-up form schemas, typed submission contracts, and validation/error mapping helpers.
 51. [ ] Phase 6/Auth Kit chunk 2: implement password recovery and magic-link workflows with token lifecycle, expiry handling, and typed callbacks.
 52. [ ] Phase 6/Auth Kit chunk 3: add social login adapter contracts and MFA challenge primitives with pluggable provider interfaces.
 53. [ ] Phase 6/Auth Kit chunk 4: implement route/component session guards with unauthenticated fallback and revalidation behavior.

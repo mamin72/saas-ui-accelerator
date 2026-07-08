@@ -21,6 +21,7 @@ export * from './localeSortFilter';
 export * from './tokenSchema';
 export * from './themePacks';
 export * from './queryContracts';
+export * from './authFormContracts';
 export * from './tableComponent';
 export * from './component';
 export * from './myComponent';
