@@ -204,7 +204,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 23. [x] Phase 5/Foundation Track 1 chunk 4: add typed theme resolver utilities and fallback behavior.
 24. [x] Phase 5/Foundation Track 1 chunk 5: add tests, docs, and examples for token and theme usage.
 25. [x] Phase 5/Foundation Track 1 completion gate: all chunk outputs integrated and validated.
-26. [ ] Phase 5/Foundation Track 2 chunk 1: define query hook contracts and cache adapter interfaces.
+26. [x] Phase 5/Foundation Track 2 chunk 1: define query hook contracts and cache adapter interfaces.
 27. [ ] Phase 5/Foundation Track 2 chunk 2: implement optimistic update and rollback primitives.
 28. [ ] Phase 5/Foundation Track 2 chunk 3: add offline-aware state sync and queueing patterns.
 29. [ ] Phase 5/Foundation Track 2 chunk 4: add mutation lifecycle state primitives and events.
@@ -325,8 +325,8 @@ Work strictly from top to bottom. Do not start the next item until the current i
 
 ## Next Item To Execute
 
-- Item 26: Phase 5/Foundation Track 2 chunk 1 - query hook contracts and cache adapter interfaces.
+- Item 27: Phase 5/Foundation Track 2 chunk 2 - optimistic update and rollback primitives.
 - Scope for next implementation:
-- Define typed query hook request/response contracts.
-- Define cache adapter interfaces and cache key model.
-- Add initial tests for contract shape and adapter behavior boundaries.
+- Add optimistic update helper primitives for cache-first mutation flows.
+- Add rollback primitives to restore previous cache snapshot on mutation failure.
+- Add tests for optimistic apply/commit/rollback lifecycle behavior.

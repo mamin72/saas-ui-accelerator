@@ -75,6 +75,7 @@ runtime.component.dataGridPro;
 - Baseline foundation theme packs with parity checks (`baselineThemePacks`, `createBaselineThemePacks`, `assertThemePacksShareTokenCoverage`, `assertThemePacksShareAliasCoverage`)
 - Density mode and RTL-safe token utilities (`resolveDensityModeTokens`, `resolveDirectionalTokenName`, `createDirectionalTokenPair`)
 - Typed theme resolver utilities with fallback/strict modes (`resolveThemePack`, `createThemeResolver`)
+- Query hook contracts and cache adapter primitives (`createQueryHookContract`, `createQueryCacheKey`, `createInMemoryCacheAdapter`)
 - Starter templates for table and parse+sort setup (`createTableStarterTemplate`, `createParseAndSortStarterTemplate`, `parseAndSortWithStarterTemplate`)
 - Schema-driven column builder utilities (`createColumnSchemaBuilder`, `defineTableColumns`)
 - Strong TypeScript row/column inference helpers (`createTypedTableOptions`, `createTypedTableComponent`)
@@ -197,6 +198,29 @@ const compact = resolveDensityModeTokens("compact");
 const rtlDirectional = createDirectionalTokenPair(undefined, "rtl");
 
 const pageBackground = getTokenValue(theme.schema, "color.page.background");
+```
+
+## Query Contracts and Cache Adapters
+
+```ts
+import {
+  createInMemoryCacheAdapter,
+  createQueryCacheKey,
+  createQueryHookContract
+} from "saas-ui-accelerator";
+
+const cache = createInMemoryCacheAdapter();
+const key = createQueryCacheKey("users.list", { page: 1, role: "admin" });
+
+const usersContract = createQueryHookContract<{ page: number }, Array<{ id: string }>>({
+  key: "users.list",
+  run: async (request) => ({
+    data: [{ id: `u-${request.params.page}` }],
+    receivedAtUtc: new Date().toISOString()
+  })
+});
+
+cache.set(key, { value: await usersContract.run({ key, params: { page: 1 } }), createdAtEpochMs: Date.now() });
 ```
 
 ## Data Format Contract
