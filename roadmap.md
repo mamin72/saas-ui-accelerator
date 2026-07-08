@@ -217,7 +217,7 @@ Work strictly from top to bottom. Do not start the next item until the current i
 36. [x] Phase 5/Foundation Track 3 chunk 5: add tests, docs, and examples for access control primitives.
 37. [x] Phase 5/Foundation Track 3 completion gate: all chunk outputs integrated and validated.
 38. [x] Phase 5/Foundation Track 4 chunk 1: define error boundary and fallback view contracts.
-39. [ ] Phase 5/Foundation Track 4 chunk 2: implement retry wrappers with policy configuration.
+39. [x] Phase 5/Foundation Track 4 chunk 2: implement retry wrappers with policy configuration.
 40. [ ] Phase 5/Foundation Track 4 chunk 3: add skeleton/loading-state primitives and conventions.
 41. [ ] Phase 5/Foundation Track 4 chunk 4: implement optimistic rollback and recovery helpers.
 42. [ ] Phase 5/Foundation Track 4 chunk 5: add tests, docs, and examples for resilience primitives.
